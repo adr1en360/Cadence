@@ -49,8 +49,8 @@ Cadence solves this by automating:
 ```
 
 For a detailed look at system architecture and subscription rules, see:
-*   [docs/billing_states.md](file:///c:/Users/DELL/Documents/Cadence/docs/billing_states.md) — Subscription State Machine & Dunning Rules
-*   [docs/nomba_api.md](file:///c:/Users/DELL/Documents/Cadence/docs/nomba_api.md) — Nomba API Integration & Webhook Signatures
+*   [docs/billing_states.md](docs/billing_states.md) — Subscription State Machine & Dunning Rules
+*   [docs/nomba_api.md](docs/nomba_api.md) — Nomba API Integration & Webhook Signatures
 
 ---
 
@@ -151,7 +151,7 @@ pytest
    ```bash
    python scripts/create_checkout.py <your_ngrok_url>
    ```
-3. Complete the checkout payment using the test cards in [docs/nomba_api.md](file:///c:/Users/DELL/Documents/Cadence/docs/nomba_api.md).
+3. Complete the checkout payment using the test cards in [docs/nomba_api.md](docs/nomba_api.md).
 
 ---
 
