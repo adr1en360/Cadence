@@ -1,0 +1,20 @@
+from sqlalchemy import Column, String, DateTime, Text, ForeignKey
+from sqlalchemy.orm import relationship
+import uuid
+from datetime import datetime
+from app.core.database import Base
+
+def generate_uuid():
+    return str(uuid.uuid4())
+
+class Event(Base):
+    __tablename__ = "events"
+
+    id = Column(String, primary_key=True, default=generate_uuid)
+    merchant_id = Column(String, ForeignKey("merchants.id"), nullable=False)
+    subscription_id = Column(String, ForeignKey("subscriptions.id"), nullable=True)
+    event_type = Column(String, nullable=False)  # subscription.activated, payment.failed, etc.
+    data_json = Column(Text, nullable=False)  # JSON dump of event context/metadata
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    subscription = relationship("Subscription", back_populates="events")
