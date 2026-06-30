@@ -34,13 +34,13 @@ def login_page(request: Request):
     # If already logged in, redirect to dashboard
     if request.cookies.get("access_token"):
         return Response(headers={"Location": "/dashboard"}, status_code=302)
-    return templates.TemplateResponse("login.html", {"request": request})
+    return templates.TemplateResponse(request=request, name="login.html")
 
 @router.get("/register")
 def register_page(request: Request):
     if request.cookies.get("access_token"):
         return Response(headers={"Location": "/dashboard"}, status_code=302)
-    return templates.TemplateResponse("register.html", {"request": request})
+    return templates.TemplateResponse(request=request, name="register.html")
 
 @router.get("/dashboard")
 def dashboard_page(request: Request, db: Session = Depends(get_db)):
@@ -49,7 +49,7 @@ def dashboard_page(request: Request, db: Session = Depends(get_db)):
     except HTTPException:
         return Response(headers={"Location": "/login"}, status_code=302)
         
-    return templates.TemplateResponse("dashboard.html", {"request": request, "merchant": merchant})
+    return templates.TemplateResponse(request=request, name="dashboard.html", context={"merchant": merchant})
 
 # JSON Data API Routers for UI Dashboard
 @router.get("/api/dashboard/stats")

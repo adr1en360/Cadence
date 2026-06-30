@@ -15,8 +15,7 @@ templates = Jinja2Templates(directory="templates")
 def portal_page(sub_id: str, request: Request, db: Session = Depends(get_db)):
     sub = db.query(Subscription).filter(Subscription.id == sub_id).first()
     if not sub:
-        return templates.TemplateResponse("base.html", {
-            "request": request,
+        return templates.TemplateResponse(request=request, name="base.html", context={
             "content_override": "<h3>Subscription Not Found</h3>"
         })
         
@@ -34,8 +33,7 @@ def portal_page(sub_id: str, request: Request, db: Session = Depends(get_db)):
         "period_end": sub.current_period_end.strftime('%Y-%m-%d %H:%M')
     }
     
-    return templates.TemplateResponse("portal.html", {
-        "request": request,
+    return templates.TemplateResponse(request=request, name="portal.html", context={
         "subscription": subscription_data
     })
 
