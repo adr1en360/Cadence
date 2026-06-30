@@ -15,6 +15,7 @@ docs/
 ├── CONTEXT.md                  ← this file
 ├── architecture.md             ← System overview, component diagram, data flow
 ├── nomba_api.md                ← Nomba API reference (endpoints, auth, webhook format, gotchas)
+├── nomba_api_llms.md           ← Nomba API LLM documentation index (for AI lookup)
 ├── billing_states.md           ← State machine diagram and transition rules
 └── deployment.md               ← Render setup, env vars, Supabase config
 ```
@@ -27,5 +28,9 @@ docs/
 ## Constraints
 - No credentials in docs — reference env var names only
 - Keep docs in sync with code — stale docs are worse than no docs
+
+## Nomba API Reference Guide (For AI Assistants)
+- Refer to `docs/nomba_api_llms.md` for URLs of the latest Nomba API docs.
+- Use the `read_url_content` tool to fetch live endpoint details from those URLs when you need exact schemas.
 
 _Last updated: 2026-06-30_
