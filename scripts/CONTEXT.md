@@ -20,7 +20,7 @@ scripts/
 ```
 
 ## What Good Output Looks Like
-- Scripts are standalone — run with `python scripts/<name>.py`, no app server needed
+- Scripts are standalone — run with `uv run scripts/<name>.py`, no app server needed
 - Scripts load credentials from env vars or `.env` file, never hardcoded
 - Output is clear and human-readable (print what's happening at each step)
 

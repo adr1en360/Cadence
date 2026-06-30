@@ -58,6 +58,7 @@ For a detailed look at system architecture and subscription rules, see:
 
 ### Prerequisites
 *   Python 3.10+
+*   [uv](https://github.com/astral-sh/uv) (Astral's fast Python package manager)
 *   Docker (for running the local database)
 
 ### 1. Clone the Repository
@@ -67,8 +68,9 @@ cd Cadence
 ```
 
 ### 2. Set Up Virtual Environment
+Create a virtual environment using `uv`:
 ```bash
-python -m venv .venv
+uv venv
 # On Windows:
 .venv\Scripts\activate
 # On macOS/Linux:
@@ -76,8 +78,9 @@ source .venv/bin/activate
 ```
 
 ### 3. Install Dependencies
+Install all requirements using `uv`:
 ```bash
-pip install -r requirements.txt
+uv pip install -r requirements.txt
 ```
 
 ### 4. Start Local Database (Docker)
@@ -108,7 +111,7 @@ Open `.env` and fill in your **Nomba Test Credentials**:
 
 Start the local development server:
 ```bash
-uvicorn app.main:app --reload --port 8000
+uv run uvicorn app.main:app --reload --port 8000
 ```
 FastAPI will start the web app and initialize the background dunning scheduler thread automatically.
 *   **Merchant Dashboard:** Open `http://localhost:8000/dashboard`
@@ -139,7 +142,7 @@ The following environment variables configure the service:
 ### Running Tests
 To run unit and integration tests (ensure your test DB is configured):
 ```bash
-pytest
+uv run pytest
 ```
 
 ### Testing Checkout & Webhooks Locally
@@ -149,7 +152,7 @@ pytest
    ```
 2. Trigger a checkout order using the helper script:
    ```bash
-   python scripts/create_checkout.py <your_ngrok_url>
+   uv run scripts/create_checkout.py <your_ngrok_url>
    ```
 3. Complete the checkout payment using the test cards in [docs/nomba_api.md](docs/nomba_api.md).
 

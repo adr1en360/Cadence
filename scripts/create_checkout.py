@@ -133,14 +133,14 @@ def create_tokenized_checkout(callback_url: str, token: str = None, account_id: 
 def print_usage():
     print("Usage:")
     print("  No-auth mode (try first):")
-    print("    python create_checkout.py <ngrok_https_url>")
+    print("    uv run scripts/create_checkout.py <ngrok_https_url>")
     print("")
     print("  Auth mode (if no-auth doesn't support tokenizeCard):")
-    print("    python create_checkout.py --auth <ngrok_https_url> <client_id> <client_secret> <account_id>")
+    print("    uv run scripts/create_checkout.py --auth <ngrok_https_url> <client_id> <client_secret> <account_id>")
     print("")
     print("Example:")
-    print("  python create_checkout.py https://abc123.ngrok-free.app")
-    print("  python create_checkout.py --auth https://abc123.ngrok-free.app my_client_id my_client_secret my_account_id")
+    print("  uv run scripts/create_checkout.py https://abc123.ngrok-free.app")
+    print("  uv run scripts/create_checkout.py --auth https://abc123.ngrok-free.app my_client_id my_client_secret my_account_id")
 
 
 if __name__ == "__main__":
