@@ -7,6 +7,8 @@ Architecture documentation, Nomba API integration notes, and design decisions. T
 1. Document Nomba API findings as they're discovered (endpoint paths, auth flows, webhook schemas)
 2. Record architecture decisions that affect multiple modules
 3. Keep the Nomba API reference updated as we learn more from sandbox testing
+4. Design and expose an `llms.txt` file for Cadence's own docs so integrating AI agents can easily understand how to use Cadence's API
+5. Plan and package a custom agentic Skill (e.g. using `workflow-skill-creator`) once the subscription flow is fully functional and sandbox-tested to allow instant AI-driven platform integrations
 
 ## Files In Here
 
