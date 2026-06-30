@@ -1,0 +1,416 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Cadence Billing{% endblock %}
+
+{% block nav_links %}
+    <span style="font-size: 0.9rem; color: var(--text-secondary);">Logged in as: <strong style="color: white;">{{ merchant.name }}</strong></span>
+    <a href="#" id="logout-btn" class="btn btn-secondary">Logout</a>
+{% endblock %}
+
+{% block extra_head %}
+<style>
+    .metric-card {
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .metric-value {
+        font-family: var(--font-title);
+        font-size: 2rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #fff, #818cf8);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .section-title {
+        font-family: var(--font-title);
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 0.5rem;
+    }
+
+    th, td {
+        padding: 0.75rem 1rem;
+        text-align: left;
+        border-bottom: 1px solid var(--border-color);
+        font-size: 0.9rem;
+    }
+
+    th {
+        color: var(--text-secondary);
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+    }
+
+    tbody tr:hover {
+        background: rgba(255, 255, 255, 0.02);
+    }
+
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-content {
+        width: 100%;
+        max-width: 500px;
+        padding: 2rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+
+    .form-group label {
+        display: block;
+        font-size: 0.85rem;
+        margin-bottom: 0.5rem;
+        color: var(--text-secondary);
+    }
+
+    .form-control {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        color: white;
+        font-family: inherit;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 2px var(--glow-color);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="display: flex; flex-direction: column; gap: 2.5rem;">
+    
+    <!-- Metrics Section -->
+    <div class="grid-3">
+        <div class="glass-card metric-card">
+            <span style="color: var(--text-secondary); font-size: 0.85rem;">Active Subscriptions</span>
+            <span class="metric-value" id="val-active-subs">0</span>
+        </div>
+        <div class="glass-card metric-card">
+            <span style="color: var(--text-secondary); font-size: 0.85rem;">Monthly Recurring Revenue</span>
+            <span class="metric-value" id="val-mrr">₦0.00</span>
+        </div>
+        <div class="glass-card metric-card">
+            <span style="color: var(--text-secondary); font-size: 0.85rem;">Total Processed Payments</span>
+            <span class="metric-value" id="val-processed-payments">₦0.00</span>
+        </div>
+    </div>
+
+    <!-- Plans & API Keys -->
+    <div class="grid-2">
+        <!-- Plans Block -->
+        <div class="glass-card" style="padding: 1.5rem;">
+            <div class="section-title">
+                <span>Billing Plans</span>
+                <button class="btn btn-secondary" onclick="openModal('plan-modal')" style="font-size: 0.8rem; padding: 0.4rem 0.8rem;">+ Create Plan</button>
+            </div>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Plan Name</th>
+                            <th>Amount</th>
+                            <th>Interval</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="plans-table-body">
+                        <tr><td colspan="4" style="color: var(--text-secondary); text-align: center;">Loading plans...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- API Keys Block -->
+        <div class="glass-card" style="padding: 1.5rem;">
+            <div class="section-title">
+                <span>Developer API Keys</span>
+                <button class="btn btn-secondary" onclick="openModal('key-modal')" style="font-size: 0.8rem; padding: 0.4rem 0.8rem;">+ Generate Key</button>
+            </div>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Label</th>
+                            <th>Prefix</th>
+                            <th>Created At</th>
+                        </tr>
+                    </thead>
+                    <tbody id="keys-table-body">
+                        <tr><td colspan="3" style="color: var(--text-secondary); text-align: center;">Loading keys...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Subscriptions Log -->
+    <div class="glass-card" style="padding: 1.5rem;">
+        <h3 class="section-title">Subscribers</h3>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Customer</th>
+                        <th>Plan</th>
+                        <th>Status</th>
+                        <th>Period Start</th>
+                        <th>Period End</th>
+                        <th>Self-Service Link</th>
+                    </tr>
+                </thead>
+                <tbody id="subs-table-body">
+                    <tr><td colspan="6" style="color: var(--text-secondary); text-align: center;">Loading subscribers...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Plan Creation Modal -->
+<div id="plan-modal" class="modal">
+    <div class="glass-card modal-content">
+        <h3 style="margin-bottom: 1.5rem; font-family: var(--font-title);">Create Subscription Plan</h3>
+        <form id="plan-form">
+            <div class="form-group">
+                <label>Plan Name</label>
+                <input type="text" id="plan-name" class="form-control" placeholder="Premium Monthly" required>
+            </div>
+            <div class="form-group">
+                <label>Amount (NGN)</label>
+                <input type="number" id="plan-amount" class="form-control" placeholder="5000.00" required>
+            </div>
+            <div class="form-group">
+                <label>Billing Interval (Days)</label>
+                <input type="number" id="plan-interval" class="form-control" value="30" required>
+            </div>
+            <div class="form-group">
+                <label>Trial Days (Optional)</label>
+                <input type="number" id="plan-trial" class="form-control" value="0">
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('plan-modal')">Cancel</button>
+                <button type="submit" class="btn">Create Plan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- API Key Generation Modal -->
+<div id="key-modal" class="modal">
+    <div class="glass-card modal-content">
+        <h3 style="margin-bottom: 1.5rem; font-family: var(--font-title);">Generate Developer API Key</h3>
+        <form id="key-form">
+            <div class="form-group">
+                <label>Key Label</label>
+                <input type="text" id="key-label" class="form-control" placeholder="Production Server Key" required>
+            </div>
+            <div id="api-key-display-box" style="display: none; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); padding: 1rem; border-radius: 8px; margin-bottom: 1.25rem; font-family: monospace; font-size: 0.95rem; color: #34d399; word-break: break-all;"></div>
+            <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('key-modal')">Close</button>
+                <button type="submit" id="key-submit-btn" class="btn">Generate Key</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Get authorization JWT token from cookies
+    const getJwt = () => {
+        const matches = document.cookie.match(new RegExp("(?:^|; )access_token=([^;]*)"));
+        return matches ? matches[1] : null;
+    };
+
+    const jwt = getJwt();
+    if (!jwt) {
+        window.location.href = "/login";
+    }
+
+    const authHeaders = {
+        "Authorization": `Bearer ${jwt}`,
+        "Content-Type": "application/json"
+    };
+
+    // Logout
+    document.getElementById("logout-btn").addEventListener("click", (e) => {
+        e.preventDefault();
+        document.cookie = "access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+        window.location.href = "/login";
+    });
+
+    const openModal = (id) => {
+        document.getElementById(id).style.display = "flex";
+    };
+
+    const closeModal = (id) => {
+        document.getElementById(id).style.display = "none";
+        if (id === 'key-modal') {
+            document.getElementById("api-key-display-box").style.display = "none";
+            document.getElementById("key-submit-btn").style.display = "block";
+            document.getElementById("key-label").disabled = false;
+            document.getElementById("key-label").value = "";
+        }
+    };
+
+    // Load Data
+    const loadData = async () => {
+        try {
+            // Load dashboard totals
+            const statsResp = await fetch("/api/dashboard/stats", { headers: authHeaders });
+            const stats = await statsResp.json();
+            
+            document.getElementById("val-active-subs").innerText = stats.active_subscribers;
+            document.getElementById("val-mrr").innerText = `₦${stats.mrr.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+            document.getElementById("val-processed-payments").innerText = `₦${stats.total_payments.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+
+            // Load Plans
+            const plansResp = await fetch("/api/dashboard/plans", { headers: authHeaders });
+            const plans = await plansResp.json();
+            const plansBody = document.getElementById("plans-table-body");
+            plansBody.innerHTML = plans.length ? plans.map(p => `
+                <tr>
+                    <td><strong>${p.name}</strong></td>
+                    <td>₦${p.amount.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+                    <td>${p.interval_days} Days</td>
+                    <td><button class="btn btn-secondary" onclick="deletePlan('${p.id}')" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">Archive</button></td>
+                </tr>
+            `).join('') : `<tr><td colspan="4" style="text-align: center; color: var(--text-secondary);">No plans active</td></tr>`;
+
+            // Load Keys
+            const keysResp = await fetch("/api/auth/api-keys", { headers: authHeaders });
+            const keys = await keysResp.json();
+            const keysBody = document.getElementById("keys-table-body");
+            keysBody.innerHTML = keys.length ? keys.map(k => `
+                <tr>
+                    <td>${k.label}</td>
+                    <td><code style="color: var(--text-secondary);">${k.prefix}...</code></td>
+                    <td>${new Date(k.created_at).toLocaleDateString()}</td>
+                </tr>
+            `).join('') : `<tr><td colspan="3" style="text-align: center; color: var(--text-secondary);">No API keys generated</td></tr>`;
+
+            // Load Subscriptions
+            const subsResp = await fetch("/api/dashboard/subscriptions", { headers: authHeaders });
+            const subs = await subsResp.json();
+            const subsBody = document.getElementById("subs-table-body");
+            subsBody.innerHTML = subs.length ? subs.map(s => `
+                <tr>
+                    <td>
+                        <div style="font-weight: 600;">${s.customer_name || 'N/A'}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary);">${s.customer_email}</div>
+                    </td>
+                    <td>${s.plan_name}</td>
+                    <td><span class="badge badge-${s.status}">${s.status}</span></td>
+                    <td style="color: var(--text-secondary);">${new Date(s.period_start).toLocaleDateString()}</td>
+                    <td style="color: var(--text-secondary);">${new Date(s.period_end).toLocaleDateString()}</td>
+                    <td><a href="/portal/${s.id}" class="btn btn-secondary" style="font-size: 0.75rem; padding: 0.3rem 0.6rem;">Portal Link</a></td>
+                </tr>
+            `).join('') : `<tr><td colspan="6" style="text-align: center; color: var(--text-secondary);">No subscriptions active</td></tr>`;
+
+        } catch (e) {
+            console.error("Failed to load dashboard data", e);
+        }
+    };
+
+    // Create Plan
+    document.getElementById("plan-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const payload = {
+            name: document.getElementById("plan-name").value,
+            amount: parseFloat(document.getElementById("plan-amount").value),
+            interval_days: parseInt(document.getElementById("plan-interval").value),
+            trial_days: parseInt(document.getElementById("plan-trial").value) || 0
+        };
+
+        try {
+            const resp = await fetch("/api/dashboard/plans", {
+                method: "POST",
+                headers: authHeaders,
+                body: JSON.stringify(payload)
+            });
+            if (resp.ok) {
+                closeModal("plan-modal");
+                document.getElementById("plan-form").reset();
+                loadData();
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    });
+
+    // Delete Plan
+    const deletePlan = async (id) => {
+        if (!confirm("Are you sure you want to archive this plan?")) return;
+        try {
+            const resp = await fetch(`/api/dashboard/plans/${id}`, {
+                method: "DELETE",
+                headers: authHeaders
+            });
+            if (resp.ok) {
+                loadData();
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    // Generate Key
+    document.getElementById("key-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const label = document.getElementById("key-label").value;
+
+        try {
+            const resp = await fetch("/api/auth/api-keys", {
+                method: "POST",
+                headers: authHeaders,
+                body: JSON.stringify({ label })
+            });
+            const data = await resp.json();
+            if (resp.ok) {
+                const display = document.getElementById("api-key-display-box");
+                display.innerText = data.api_key;
+                display.style.display = "block";
+                document.getElementById("key-submit-btn").style.display = "none";
+                document.getElementById("key-label").disabled = true;
+                loadData();
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    });
+
+    loadData();
+</script>
+{% endblock %}

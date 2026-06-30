@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block title %}Register - Cadence Billing{% endblock %}
+
+{% block extra_head %}
+<style>
+    .auth-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 80vh;
+    }
+
+    .auth-card {
+        width: 100%;
+        max-width: 500px;
+        padding: 2.5rem;
+    }
+
+    .auth-title {
+        font-family: var(--font-title);
+        font-weight: 700;
+        font-size: 1.75rem;
+        margin-bottom: 0.5rem;
+        text-align: center;
+        background: linear-gradient(135deg, #fff, var(--text-secondary));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .auth-subtitle {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+
+    .form-group label {
+        display: block;
+        font-size: 0.85rem;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        color: var(--text-secondary);
+    }
+
+    .form-control {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        color: white;
+        font-family: inherit;
+        font-size: 0.95rem;
+        transition: all 0.2s ease;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 2px var(--glow-color);
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .error-msg {
+        color: var(--danger);
+        font-size: 0.85rem;
+        margin-top: 0.5rem;
+        display: none;
+    }
+
+    .auth-footer {
+        margin-top: 1.5rem;
+        text-align: center;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+    }
+
+    .auth-footer a {
+        color: var(--primary);
+        text-decoration: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+    <div class="glass-card auth-card">
+        <h2 class="auth-title">Create your account</h2>
+        <p class="auth-subtitle">Initialize your Cadence merchant billing engine</p>
+        
+        <form id="register-form">
+            <div class="form-group">
+                <label for="name">Company / Merchant Name</label>
+                <input type="text" id="name" class="form-control" placeholder="Acme Corp" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" class="form-control" placeholder="name@company.com" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" class="form-control" placeholder="••••••••" required>
+            </div>
+
+            <div style="border-top: 1px solid var(--border-color); margin: 1.5rem 0; padding-top: 1rem;">
+                <h4 style="font-size: 0.9rem; font-weight: 600; margin-bottom: 1rem; color: #a855f7;">Nomba API Sandbox Credentials</h4>
+                
+                <div class="form-group">
+                    <label for="client-id">Nomba Client ID</label>
+                    <input type="text" id="client-id" class="form-control" placeholder="CLIENT_ID_..." required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="client-secret">Nomba Client Secret</label>
+                    <input type="text" id="client-secret" class="form-control" placeholder="CLIENT_SECRET_..." required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="account-id">Nomba Account ID (Parent ID)</label>
+                    <input type="text" id="account-id" class="form-control" placeholder="890022ce-bae0-..." required>
+                </div>
+            </div>
+            
+            <div id="error-box" class="error-msg"></div>
+            
+            <button type="submit" class="btn" style="width: 100%; margin-top: 1rem; padding: 0.75rem;">Register Engine</button>
+        </form>
+        
+        <p class="auth-footer">
+            Already have an account? <a href="/login">Login</a>
+        </p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.getElementById("register-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const payload = {
+            name: document.getElementById("name").value,
+            email: document.getElementById("email").value,
+            password: document.getElementById("password").value,
+            nomba_client_id: document.getElementById("client-id").value,
+            nomba_client_secret: document.getElementById("client-secret").value,
+            nomba_account_id: document.getElementById("account-id").value
+        };
+        const errorBox = document.getElementById("error-box");
+        errorBox.style.display = "none";
+        
+        try {
+            const resp = await fetch("/api/auth/register", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+            
+            const data = await resp.json();
+            if (!resp.ok) {
+                throw new Error(data.detail || "Registration failed");
+            }
+            
+            window.location.href = "/login";
+        } catch (err) {
+            errorBox.innerText = err.message;
+            errorBox.style.display = "block";
+        }
+    });
+</script>
+{% endblock %}
