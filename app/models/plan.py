@@ -21,4 +21,4 @@ class Plan(Base):
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     merchant = relationship("Merchant", back_populates="plans")
-    subscriptions = relationship("Subscription", back_populates="plan")
+    subscriptions = relationship("Subscription", back_populates="plan", cascade="all, delete-orphan")
