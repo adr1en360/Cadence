@@ -32,6 +32,52 @@
         min-width: 0;
     }
 
+    /* Project Selector */
+    .project-selector {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+        padding: 0.85rem 1.25rem;
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 14px;
+        backdrop-filter: blur(12px);
+    }
+
+    .project-selector label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--text-secondary);
+        white-space: nowrap;
+    }
+
+    .project-selector select {
+        flex: 1;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 0.55rem 0.85rem;
+        color: white;
+        font-family: inherit;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: border-color 0.2s ease;
+    }
+
+    .project-selector select:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 2px var(--glow-color);
+    }
+
+    .project-selector select option {
+        background: #1a1a1f;
+        color: white;
+    }
+
     /* Tab Buttons */
     .tab-btn {
         display: flex;
@@ -113,17 +159,17 @@
     }
 
     th, td {
-        padding: 1rem 1.25rem;
+        padding: 0.7rem 1rem;
         text-align: left;
         border-bottom: 1px solid var(--border-color);
-        font-size: 0.875rem;
+        font-size: 0.8rem;
     }
 
     th {
         color: var(--text-secondary);
         font-weight: 600;
         text-transform: uppercase;
-        font-size: 0.725rem;
+        font-size: 0.675rem;
         letter-spacing: 0.08em;
         background: rgba(255, 255, 255, 0.01);
     }
@@ -211,6 +257,86 @@
         background: rgba(255, 255, 255, 0.04);
     }
 
+    /* Warning callout */
+    .warning-callout {
+        background: rgba(245, 158, 11, 0.08);
+        border: 1px solid rgba(245, 158, 11, 0.2);
+        border-radius: 10px;
+        padding: 0.85rem 1rem;
+        font-size: 0.8rem;
+        color: #FBBF24;
+        margin-bottom: 1.25rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.6rem;
+        line-height: 1.5;
+    }
+
+    /* Revoked key styling */
+    .key-revoked {
+        opacity: 0.5;
+    }
+
+    .badge-revoked {
+        background: rgba(239, 68, 68, 0.1);
+        color: #F87171;
+        border: 1px solid rgba(239, 68, 68, 0.2);
+        display: inline-flex;
+        align-items: center;
+        padding: 0.2rem 0.6rem;
+        border-radius: 9999px;
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+
+    .badge-live {
+        background: rgba(16, 185, 129, 0.1);
+        color: #34D399;
+        border: 1px solid rgba(16, 185, 129, 0.2);
+        display: inline-flex;
+        align-items: center;
+        padding: 0.2rem 0.6rem;
+        border-radius: 9999px;
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+
+    /* Status Badges */
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.2rem 0.6rem;
+        border-radius: 9999px;
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+    .badge-active {
+        background: rgba(16, 185, 129, 0.1);
+        color: #34D399;
+        border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+    .badge-trialing {
+        background: rgba(96, 165, 250, 0.1);
+        color: #60A5FA;
+        border: 1px solid rgba(96, 165, 250, 0.2);
+    }
+    .badge-past_due {
+        background: rgba(245, 158, 11, 0.1);
+        color: #FBBF24;
+        border: 1px solid rgba(245, 158, 11, 0.2);
+    }
+    .badge-cancelled {
+        background: rgba(239, 68, 68, 0.1);
+        color: #F87171;
+        border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
     @keyframes tabFade {
         from { opacity: 0; transform: translateY(6px); }
         to { opacity: 1; transform: translateY(0); }
@@ -242,6 +368,17 @@
 {% endblock %}
 
 {% block content %}
+<!-- Project Selector -->
+<div class="project-selector" id="project-selector-bar">
+    <label for="project-select">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align: -2px; margin-right: 4px;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        Project
+    </label>
+    <select id="project-select">
+        <option value="">All Projects</option>
+    </select>
+</div>
+
 <div class="dashboard-layout">
     
     <!-- Sidebar Navigation -->
@@ -271,18 +408,22 @@
         <div id="overview" class="tab-content" style="display: block;">
             <div style="display: flex; flex-direction: column; gap: 2.25rem;">
                 <!-- Metrics Grid -->
-                <div class="grid-3">
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem;">
                     <div class="glass-card metric-card">
-                        <span style="color: var(--text-secondary); font-size: 0.8rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Active Subscribers</span>
+                        <span style="color: var(--text-secondary); font-size: 0.75rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Active Subscribers</span>
                         <span class="metric-value" id="val-active-subs">0</span>
                     </div>
                     <div class="glass-card metric-card">
-                        <span style="color: var(--text-secondary); font-size: 0.8rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Recurring Revenue (MRR)</span>
+                        <span style="color: var(--text-secondary); font-size: 0.75rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Recurring Revenue (MRR)</span>
                         <span class="metric-value" id="val-mrr">₦0.00</span>
                     </div>
                     <div class="glass-card metric-card">
-                        <span style="color: var(--text-secondary); font-size: 0.8rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Total Processed</span>
+                        <span style="color: var(--text-secondary); font-size: 0.75rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Total Processed</span>
                         <span class="metric-value" id="val-processed-payments">₦0.00</span>
+                    </div>
+                    <div class="glass-card metric-card">
+                        <span style="color: var(--text-secondary); font-size: 0.75rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Wallet Balance</span>
+                        <span class="metric-value" id="val-wallet-balance">₦0.00</span>
                     </div>
                 </div>
 
@@ -299,11 +440,11 @@
                                     <th>Customer</th>
                                     <th>Plan</th>
                                     <th>Status</th>
-                                    <th>Period End</th>
+                                    <th>Expires</th>
                                 </tr>
                             </thead>
                             <tbody id="quick-subs-body">
-                                <tr><td colspan="4" style="color: var(--text-secondary); text-align: center; padding: 2rem 0;">Loading subscribers...</td></tr>
+                                <tr><td colspan="4" style="color: var(--text-secondary); text-align: center; padding: 1.5rem 0;">Loading subscribers...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -325,11 +466,12 @@
                                 <th>Plan Name</th>
                                 <th>Amount</th>
                                 <th>Billing Interval</th>
+                                <th>Project</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
                         <tbody id="plans-table-body">
-                            <tr><td colspan="4" style="color: var(--text-secondary); text-align: center; padding: 2rem 0;">Loading plans...</td></tr>
+                            <tr><td colspan="5" style="color: var(--text-secondary); text-align: center; padding: 1.5rem 0;">Loading plans...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -349,11 +491,14 @@
                             <tr>
                                 <th>Key Label</th>
                                 <th>Key Prefix</th>
-                                <th>Created At</th>
+                                <th>Sub-Account</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody id="keys-table-body">
-                            <tr><td colspan="3" style="color: var(--text-secondary); text-align: center; padding: 2rem 0;">Loading keys...</td></tr>
+                            <tr><td colspan="6" style="color: var(--text-secondary); text-align: center; padding: 1.5rem 0;">Loading keys...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -364,22 +509,23 @@
         <div id="subscribers" class="tab-content">
             <div class="glass-card" style="padding: 2rem;">
                 <div class="section-title">
-                    <span>Subscribers Management</span>
+                    <span>Subscribers</span>
                 </div>
                 <div class="table-container">
                     <table>
                         <thead>
                             <tr>
                                 <th>Customer</th>
-                                <th>Plan Name</th>
+                                <th>Plan</th>
+                                <th>Amount</th>
+                                <th>Project</th>
                                 <th>Status</th>
-                                <th>Period Start</th>
-                                <th>Period End</th>
-                                <th>Portal Link</th>
+                                <th>Expires</th>
+                                <th>Portal</th>
                             </tr>
                         </thead>
                         <tbody id="subs-table-body">
-                            <tr><td colspan="6" style="color: var(--text-secondary); text-align: center; padding: 2rem 0;">Loading subscribers...</td></tr>
+                            <tr><td colspan="7" style="color: var(--text-secondary); text-align: center; padding: 1.5rem 0;">Loading subscribers...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -424,10 +570,19 @@
         <h3 style="margin-bottom: 1.5rem; font-family: var(--font-title); font-size: 1.35rem; font-weight: 700; color: var(--primary);">Generate Developer API Key</h3>
         <form id="key-form">
             <div class="form-group">
-                <label>Key Label</label>
-                <input type="text" id="key-label" class="form-control" placeholder="Production Server Key" required>
+                <label>Key Label (Project Name)</label>
+                <input type="text" id="key-label" class="form-control" placeholder="SchoolPadi, RentBike, etc." required>
             </div>
-            <div id="api-key-display-box" style="display: none; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); padding: 1.1rem; border-radius: 10px; margin-bottom: 1.5rem; font-family: monospace; font-size: 0.95rem; color: #34d399; word-break: break-all; text-align: center; letter-spacing: 0.02em;"></div>
+            <div class="form-group">
+                <label>Nomba Sub-Account ID (Optional)</label>
+                <input type="text" id="key-sub-account" class="form-control" placeholder="Leave blank to use main wallet">
+            </div>
+            <div class="warning-callout" id="key-warning-before">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0; margin-top:1px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                <span>Your API key will only be shown <strong>once</strong> after generation. Copy it immediately and store it securely — you will not be able to view it again.</span>
+            </div>
+            <div id="api-key-display-box" style="display: none; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); padding: 1.1rem; border-radius: 10px; margin-bottom: 1rem; font-family: monospace; font-size: 0.85rem; color: #34d399; word-break: break-all; text-align: center; letter-spacing: 0.02em;"></div>
+            <div id="api-key-copy-hint" style="display: none; text-align: center; font-size: 0.75rem; color: var(--warning); margin-bottom: 1rem;">⚠️ This key will disappear when you close this dialog. Copy it now!</div>
             <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.75rem;">
                 <button type="button" class="btn btn-secondary" onclick="closeModal('key-modal')">Close</button>
                 <button type="submit" id="key-submit-btn" class="btn">Generate Key</button>
@@ -455,6 +610,10 @@
         "Content-Type": "application/json"
     };
 
+    // State
+    let allKeys = [];
+    let selectedProjectId = "";
+
     // Logout
     document.getElementById("logout-btn").addEventListener("click", (e) => {
         e.preventDefault();
@@ -470,9 +629,13 @@
         document.getElementById(id).style.display = "none";
         if (id === 'key-modal') {
             document.getElementById("api-key-display-box").style.display = "none";
+            document.getElementById("api-key-copy-hint").style.display = "none";
+            document.getElementById("key-warning-before").style.display = "flex";
             document.getElementById("key-submit-btn").style.display = "block";
             document.getElementById("key-label").disabled = false;
             document.getElementById("key-label").value = "";
+            document.getElementById("key-sub-account").disabled = false;
+            document.getElementById("key-sub-account").value = "";
         }
     };
 
@@ -488,19 +651,54 @@
         document.getElementById('btn-' + tabId).classList.add('active-tab');
     };
 
+    // Project selector change
+    document.getElementById("project-select").addEventListener("change", (e) => {
+        selectedProjectId = e.target.value;
+        loadData();
+    });
+
+    // Build query string for api_key_id filtering
+    const projectParam = () => selectedProjectId ? `?api_key_id=${selectedProjectId}` : "";
+
     // Load Data
     const loadData = async () => {
         try {
+            // Load keys first (needed for project selector)
+            const keysResp = await fetch("/api/auth/api-keys", { headers: authHeaders });
+            allKeys = await keysResp.json();
+
+            // Populate project selector (preserve current selection)
+            const select = document.getElementById("project-select");
+            const currentVal = select.value;
+            select.innerHTML = '<option value="">All Projects</option>';
+            allKeys.filter(k => k.is_active).forEach(k => {
+                const opt = document.createElement("option");
+                opt.value = k.id;
+                opt.textContent = `${k.label} (${k.prefix}...)`;
+                select.appendChild(opt);
+            });
+            select.value = currentVal || "";
+            selectedProjectId = select.value;
+
             // Load dashboard totals
-            const statsResp = await fetch("/api/dashboard/stats", { headers: authHeaders });
+            const statsResp = await fetch(`/api/dashboard/stats${projectParam()}`, { headers: authHeaders });
             const stats = await statsResp.json();
             
             document.getElementById("val-active-subs").innerText = stats.active_subscribers;
             document.getElementById("val-mrr").innerText = `₦${stats.mrr.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
             document.getElementById("val-processed-payments").innerText = `₦${stats.total_payments.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
 
+            // Load wallet balance
+            try {
+                const walletResp = await fetch(`/api/dashboard/wallet-balance${projectParam()}`, { headers: authHeaders });
+                const wallet = await walletResp.json();
+                document.getElementById("val-wallet-balance").innerText = `₦${wallet.amount.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+            } catch(e) {
+                document.getElementById("val-wallet-balance").innerText = "—";
+            }
+
             // Load Plans
-            const plansResp = await fetch("/api/dashboard/plans", { headers: authHeaders });
+            const plansResp = await fetch(`/api/dashboard/plans${projectParam()}`, { headers: authHeaders });
             const plans = await plansResp.json();
             const plansBody = document.getElementById("plans-table-body");
             plansBody.innerHTML = plans.length ? plans.map(p => `
@@ -508,24 +706,26 @@
                     <td><strong style="color: white;">${p.name}</strong></td>
                     <td style="font-weight: 500; color: var(--primary);">₦${p.amount.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
                     <td>${p.interval_days} Days</td>
-                    <td><button class="btn btn-secondary" onclick="deletePlan('${p.id}')" style="padding: 0.4rem 0.8rem; font-size: 0.75rem; color: var(--danger); border-color: rgba(239, 68, 68, 0.15);">Archive</button></td>
+                    <td style="color: var(--text-secondary); font-size: 0.75rem;">${p.api_key_label}</td>
+                    <td><button class="btn btn-secondary" onclick="deletePlan('${p.id}')" style="padding: 0.3rem 0.7rem; font-size: 0.7rem; color: var(--danger); border-color: rgba(239, 68, 68, 0.15);">Archive</button></td>
                 </tr>
-            `).join('') : `<tr><td colspan="4" style="text-align: center; color: var(--text-secondary); padding: 2rem 0;">No plans active</td></tr>`;
+            `).join('') : `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary); padding: 1.5rem 0;">No plans active</td></tr>`;
 
-            // Load Keys
-            const keysResp = await fetch("/api/auth/api-keys", { headers: authHeaders });
-            const keys = await keysResp.json();
+            // Load Keys Table
             const keysBody = document.getElementById("keys-table-body");
-            keysBody.innerHTML = keys.length ? keys.map(k => `
-                <tr>
+            keysBody.innerHTML = allKeys.length ? allKeys.map(k => `
+                <tr class="${k.is_active ? '' : 'key-revoked'}">
                     <td style="font-weight: 500;">${k.label}</td>
-                    <td><code style="color: var(--primary); background: rgba(255, 107, 0, 0.05); padding: 0.25rem 0.5rem; border-radius: 6px; border: 1px solid rgba(255, 107, 0, 0.1); font-size: 0.8rem;">${k.prefix}...</code></td>
-                    <td style="color: var(--text-secondary);">${new Date(k.created_at).toLocaleDateString()}</td>
+                    <td><code style="color: var(--primary); background: rgba(255, 107, 0, 0.05); padding: 0.2rem 0.45rem; border-radius: 6px; border: 1px solid rgba(255, 107, 0, 0.1); font-size: 0.75rem;">${k.prefix}...</code></td>
+                    <td style="color: var(--text-secondary); font-size: 0.75rem;">${k.nomba_sub_account_id || 'Main Wallet'}</td>
+                    <td>${k.is_active ? '<span class="badge-live">Live</span>' : '<span class="badge-revoked">Revoked</span>'}</td>
+                    <td style="color: var(--text-secondary); font-size: 0.75rem;">${new Date(k.created_at).toLocaleDateString()}</td>
+                    <td>${k.is_active ? `<button class="btn btn-secondary" onclick="revokeKey('${k.id}')" style="padding: 0.3rem 0.7rem; font-size: 0.7rem; color: var(--danger); border-color: rgba(239, 68, 68, 0.15);">Revoke</button>` : '—'}</td>
                 </tr>
-            `).join('') : `<tr><td colspan="3" style="text-align: center; color: var(--text-secondary); padding: 2rem 0;">No API keys generated</td></tr>`;
+            `).join('') : `<tr><td colspan="6" style="text-align: center; color: var(--text-secondary); padding: 1.5rem 0;">No API keys generated</td></tr>`;
 
             // Load Subscriptions
-            const subsResp = await fetch("/api/dashboard/subscriptions", { headers: authHeaders });
+            const subsResp = await fetch(`/api/dashboard/subscriptions${projectParam()}`, { headers: authHeaders });
             const subs = await subsResp.json();
             
             // Full subscribers body
@@ -533,16 +733,17 @@
             subsBody.innerHTML = subs.length ? subs.map(s => `
                 <tr>
                     <td>
-                        <div style="font-weight: 600; color: white;">${s.customer_name || 'N/A'}</div>
-                        <div style="font-size: 0.75rem; color: var(--text-secondary);">${s.customer_email}</div>
+                        <div style="font-weight: 600; color: white; font-size: 0.8rem;">${s.customer_name || 'N/A'}</div>
+                        <div style="font-size: 0.7rem; color: var(--text-secondary);">${s.customer_email}</div>
                     </td>
-                    <td style="font-weight: 500;">${s.plan_name}</td>
+                    <td style="font-weight: 500; font-size: 0.8rem;">${s.plan_name}</td>
+                    <td style="font-weight: 500; color: var(--primary); font-size: 0.8rem;">₦${s.plan_amount.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+                    <td style="color: var(--text-secondary); font-size: 0.75rem;">${s.api_key_label}</td>
                     <td><span class="badge badge-${s.status}">${s.status}</span></td>
-                    <td style="color: var(--text-secondary);">${new Date(s.period_start).toLocaleDateString()}</td>
-                    <td style="color: var(--text-secondary);">${new Date(s.period_end).toLocaleDateString()}</td>
-                    <td><a href="/portal/${s.id}" class="btn btn-secondary" style="font-size: 0.75rem; padding: 0.4rem 0.8rem;">Portal Link</a></td>
+                    <td style="color: var(--text-secondary); font-size: 0.75rem;">${new Date(s.period_end).toLocaleDateString()}</td>
+                    <td><a href="/portal/${s.id}" style="color: var(--primary); font-size: 0.75rem; text-decoration: none; font-weight: 600;">Open →</a></td>
                 </tr>
-            `).join('') : `<tr><td colspan="6" style="text-align: center; color: var(--text-secondary); padding: 2rem 0;">No subscriptions active</td></tr>`;
+            `).join('') : `<tr><td colspan="7" style="text-align: center; color: var(--text-secondary); padding: 1.5rem 0;">No subscriptions found</td></tr>`;
 
             // Overview quick list (first 3)
             const quickBody = document.getElementById("quick-subs-body");
@@ -550,14 +751,14 @@
             quickBody.innerHTML = quickSubs.length ? quickSubs.map(s => `
                 <tr>
                     <td>
-                        <div style="font-weight: 600; color: white;">${s.customer_name || 'N/A'}</div>
-                        <div style="font-size: 0.75rem; color: var(--text-secondary);">${s.customer_email}</div>
+                        <div style="font-weight: 600; color: white; font-size: 0.8rem;">${s.customer_name || 'N/A'}</div>
+                        <div style="font-size: 0.7rem; color: var(--text-secondary);">${s.customer_email}</div>
                     </td>
-                    <td>${s.plan_name}</td>
+                    <td style="font-size: 0.8rem;">${s.plan_name}</td>
                     <td><span class="badge badge-${s.status}">${s.status}</span></td>
-                    <td style="color: var(--text-secondary);">${new Date(s.period_end).toLocaleDateString()}</td>
+                    <td style="color: var(--text-secondary); font-size: 0.75rem;">${new Date(s.period_end).toLocaleDateString()}</td>
                 </tr>
-            `).join('') : `<tr><td colspan="4" style="text-align: center; color: var(--text-secondary); padding: 2rem 0;">No subscriptions active</td></tr>`;
+            `).join('') : `<tr><td colspan="4" style="text-align: center; color: var(--text-secondary); padding: 1.5rem 0;">No subscriptions found</td></tr>`;
 
         } catch (e) {
             console.error("Failed to load dashboard data", e);
@@ -571,7 +772,8 @@
             name: document.getElementById("plan-name").value,
             amount: parseFloat(document.getElementById("plan-amount").value),
             interval_days: parseInt(document.getElementById("plan-interval").value),
-            trial_days: parseInt(document.getElementById("plan-trial").value) || 0
+            trial_days: parseInt(document.getElementById("plan-trial").value) || 0,
+            api_key_id: selectedProjectId || null
         };
 
         try {
@@ -610,26 +812,46 @@
     document.getElementById("key-form").addEventListener("submit", async (e) => {
         e.preventDefault();
         const label = document.getElementById("key-label").value;
+        const subAccountId = document.getElementById("key-sub-account").value || null;
 
         try {
             const resp = await fetch("/api/auth/api-keys", {
                 method: "POST",
                 headers: authHeaders,
-                body: JSON.stringify({ label })
+                body: JSON.stringify({ label, nomba_sub_account_id: subAccountId })
             });
             const data = await resp.json();
             if (resp.ok) {
                 const display = document.getElementById("api-key-display-box");
                 display.innerText = data.api_key;
                 display.style.display = "block";
+                document.getElementById("api-key-copy-hint").style.display = "block";
+                document.getElementById("key-warning-before").style.display = "none";
                 document.getElementById("key-submit-btn").style.display = "none";
                 document.getElementById("key-label").disabled = true;
+                document.getElementById("key-sub-account").disabled = true;
                 loadData();
             }
         } catch (err) {
             console.error(err);
         }
     });
+
+    // Revoke Key
+    const revokeKey = async (id) => {
+        if (!confirm("Are you sure you want to revoke this API key? This action cannot be undone and all requests using this key will be rejected.")) return;
+        try {
+            const resp = await fetch(`/api/auth/api-keys/${id}`, {
+                method: "DELETE",
+                headers: authHeaders
+            });
+            if (resp.ok) {
+                loadData();
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    };
 
     loadData();
 </script>

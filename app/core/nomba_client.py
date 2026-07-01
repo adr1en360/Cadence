@@ -60,20 +60,25 @@ class NombaClient:
         amount: float,
         customer_email: str,
         callback_url: str,
-        currency: str = "NGN"
+        currency: str = "NGN",
+        sub_account_id: str = None
     ) -> dict:
         """Create a checkout order with tokenizeCard=True to capture tokenKey."""
         path = "/v1/checkout/order"
         url = f"{self.base_url}{path}"
         
+        order_payload = {
+            "orderReference": order_ref,
+            "amount": f"{amount:.2f}",
+            "currency": currency,
+            "customerEmail": customer_email,
+            "callbackUrl": callback_url,
+        }
+        if sub_account_id:
+            order_payload["accountId"] = sub_account_id
+            
         payload = {
-            "order": {
-                "orderReference": order_ref,
-                "amount": f"{amount:.2f}",
-                "currency": currency,
-                "customerEmail": customer_email,
-                "callbackUrl": callback_url,
-            },
+            "order": order_payload,
             "tokenizeCard": True,
             "allowedPaymentMethods": ["Card"],
         }
@@ -90,18 +95,23 @@ class NombaClient:
         order_ref: str,
         amount: float,
         idempotency_key: str,
-        currency: str = "NGN"
+        currency: str = "NGN",
+        sub_account_id: str = None
     ) -> dict:
         """Charge a saved card using its tokenKey (Tokenized Card Payment)."""
         url = f"{self.base_url}/v1/checkout/tokenized-card-payment"
         
+        order_payload = {
+            "orderReference": order_ref,
+            "amount": f"{amount:.2f}",
+            "currency": currency,
+        }
+        if sub_account_id:
+            order_payload["accountId"] = sub_account_id
+            
         payload = {
             "tokenKey": token_key,
-            "order": {
-                "orderReference": order_ref,
-                "amount": f"{amount:.2f}",
-                "currency": currency,
-            }
+            "order": order_payload
         }
         
         headers = await self._get_auth_headers(idempotency_key=idempotency_key)
@@ -139,5 +149,18 @@ class NombaClient:
             resp = await client.post(url, json=payload, headers=headers)
             resp.raise_for_status()
             return resp.json()
+
+    async def get_wallet_balance(self, sub_account_id: str = None) -> dict:
+        """Fetch balance from Nomba for parent account or sub-account."""
+        if sub_account_id:
+            url = f"{self.base_url}/v1/accounts/{sub_account_id}/balance"
+        else:
+            url = f"{self.base_url}/v1/accounts/balance"
+            
+        headers = await self._get_auth_headers()
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(url, headers=headers)
+            resp.raise_for_status()
+            return resp.json()["data"]
 
 nomba_client = NombaClient()

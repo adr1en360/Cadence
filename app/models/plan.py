@@ -18,7 +18,9 @@ class Plan(Base):
     interval_days = Column(Numeric(5, 0), nullable=False)  # Interval in days e.g., 30 for monthly
     trial_days = Column(Numeric(5, 0), default=0, nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
+    api_key_id = Column(String, ForeignKey("api_keys.id"), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     merchant = relationship("Merchant", back_populates="plans")
+    api_key = relationship("APIKey", back_populates="plans")
     subscriptions = relationship("Subscription", back_populates="plan", cascade="all, delete-orphan")

@@ -88,12 +88,14 @@ class BillingService:
         charge_amount = float(plan.amount)
         
         # Create checkout order via Nomba client
+        sub_acc_id = plan.api_key.nomba_sub_account_id if plan.api_key else None
         checkout_resp = await nomba_client.create_checkout_order(
             order_ref=order_ref,
             amount=charge_amount,
             customer_email=customer_email,
             callback_url=callback_url,
-            currency=str(plan.currency)
+            currency=str(plan.currency),
+            sub_account_id=sub_acc_id
         )
         
         checkout_link = checkout_resp.get("data", {}).get("checkoutLink") or checkout_resp.get("checkoutLink")

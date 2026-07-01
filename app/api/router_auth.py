@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session
+from typing import Optional
 from app.core.database import get_db
 from app.core.security import hash_password, verify_password, create_access_token, generate_api_key_prefix_and_secret
 from app.api.deps import get_current_merchant
@@ -22,6 +23,7 @@ class LoginRequest(BaseModel):
 
 class APIKeyCreateRequest(BaseModel):
     label: str
+    nomba_sub_account_id: Optional[str] = None
 
 @router.post("/register", status_code=status.HTTP_201_CREATED)
 def register_merchant(payload: RegisterRequest, db: Session = Depends(get_db)):
@@ -71,7 +73,8 @@ def generate_key(
         merchant_id=merchant.id,
         key_hash=hashed_key,
         key_prefix=prefix,
-        label=payload.label
+        label=payload.label,
+        nomba_sub_account_id=payload.nomba_sub_account_id
     )
     db.add(api_key)
     db.commit()
@@ -80,6 +83,7 @@ def generate_key(
         "api_key": plain_key,
         "label": payload.label,
         "prefix": prefix,
+        "nomba_sub_account_id": payload.nomba_sub_account_id,
         "message": "Copy this key now. You will not be able to see it again."
     }
 
@@ -88,12 +92,27 @@ def list_keys(
     merchant: Merchant = Depends(get_current_merchant),
     db: Session = Depends(get_db)
 ):
-    keys = db.query(APIKey).filter(APIKey.merchant_id == merchant.id, APIKey.is_active == True).all()
+    keys = db.query(APIKey).filter(APIKey.merchant_id == merchant.id).all()
     return [
         {
             "id": k.id,
             "prefix": k.key_prefix,
             "label": k.label,
-            "created_at": k.created_at
+            "created_at": k.created_at,
+            "is_active": k.is_active,
+            "nomba_sub_account_id": k.nomba_sub_account_id
         } for k in keys
     ]
+
+@router.delete("/api-keys/{key_id}")
+def revoke_key(
+    key_id: str,
+    merchant: Merchant = Depends(get_current_merchant),
+    db: Session = Depends(get_db)
+):
+    api_key = db.query(APIKey).filter(APIKey.id == key_id, APIKey.merchant_id == merchant.id).first()
+    if not api_key:
+        raise HTTPException(status_code=404, detail="API key not found")
+    api_key.is_active = False
+    db.commit()
+    return {"message": "API key revoked"}

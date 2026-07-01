@@ -32,7 +32,9 @@ class APIKey(Base):
     key_hash = Column(String, unique=True, index=True, nullable=False)
     key_prefix = Column(String(16), nullable=False)
     label = Column(String, nullable=False)
+    nomba_sub_account_id = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     is_active = Column(Boolean, default=True)
 
     merchant = relationship("Merchant", back_populates="api_keys")
+    plans = relationship("Plan", back_populates="api_key", cascade="all, delete-orphan")

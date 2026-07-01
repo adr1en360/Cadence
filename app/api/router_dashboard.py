@@ -2,10 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from typing import List
+from typing import List, Optional
 from app.core.database import get_db
 from app.api.deps import get_current_merchant
-from app.models.merchant import Merchant
+from app.models.merchant import Merchant, APIKey
 from app.models.plan import Plan
 from app.models.subscription import Subscription
 from app.models.payment import Payment
@@ -60,24 +60,37 @@ def dashboard_page(request: Request, db: Session = Depends(get_db)):
 
 # JSON Data API Routers for UI Dashboard
 @router.get("/api/dashboard/stats")
-def get_stats(merchant: Merchant = Depends(get_current_merchant), db: Session = Depends(get_db)):
-    active_count = db.query(Subscription).filter(
+def get_stats(
+    api_key_id: Optional[str] = None,
+    merchant: Merchant = Depends(get_current_merchant),
+    db: Session = Depends(get_db)
+):
+    active_query = db.query(Subscription).filter(
         Subscription.merchant_id == merchant.id,
         Subscription.status == "active"
-    ).count()
+    )
+    if api_key_id:
+        active_query = active_query.join(Plan).filter(Plan.api_key_id == api_key_id)
+    active_count = active_query.count()
     
     # Calculate MRR (sum of amounts of active subscription plans)
-    mrr_result = db.query(func.sum(Plan.amount)).join(Subscription).filter(
+    mrr_query = db.query(func.sum(Plan.amount)).join(Subscription).filter(
         Subscription.merchant_id == merchant.id,
         Subscription.status == "active"
-    ).scalar()
+    )
+    if api_key_id:
+        mrr_query = mrr_query.filter(Plan.api_key_id == api_key_id)
+    mrr_result = mrr_query.scalar()
     mrr = float(mrr_result) if mrr_result else 0.0
     
     # Calculate total processed successful payments
-    total_result = db.query(func.sum(Payment.amount)).filter(
+    total_query = db.query(func.sum(Payment.amount)).filter(
         Payment.merchant_id == merchant.id,
         Payment.status == "succeeded"
-    ).scalar()
+    )
+    if api_key_id:
+        total_query = total_query.join(Subscription).join(Plan).filter(Plan.api_key_id == api_key_id)
+    total_result = total_query.scalar()
     total_payments = float(total_result) if total_result else 0.0
     
     return {
@@ -87,15 +100,23 @@ def get_stats(merchant: Merchant = Depends(get_current_merchant), db: Session = 
     }
 
 @router.get("/api/dashboard/plans")
-def list_dashboard_plans(merchant: Merchant = Depends(get_current_merchant), db: Session = Depends(get_db)):
-    plans = db.query(Plan).filter(Plan.merchant_id == merchant.id, Plan.is_active == True).all()
+def list_dashboard_plans(
+    api_key_id: Optional[str] = None,
+    merchant: Merchant = Depends(get_current_merchant),
+    db: Session = Depends(get_db)
+):
+    query = db.query(Plan).filter(Plan.merchant_id == merchant.id, Plan.is_active == True)
+    if api_key_id:
+        query = query.filter(Plan.api_key_id == api_key_id)
+    plans = query.all()
     return [
         {
             "id": p.id,
             "name": p.name,
             "amount": float(p.amount),
             "interval_days": int(p.interval_days),
-            "trial_days": int(p.trial_days)
+            "trial_days": int(p.trial_days),
+            "api_key_label": p.api_key.label if p.api_key else "Direct / No Key"
         } for p in plans
     ]
 
@@ -110,7 +131,8 @@ def create_dashboard_plan(
         name=payload["name"],
         amount=payload["amount"],
         interval_days=payload["interval_days"],
-        trial_days=payload.get("trial_days", 0)
+        trial_days=payload.get("trial_days", 0),
+        api_key_id=payload.get("api_key_id")
     )
     db.add(plan)
     db.commit()
@@ -132,8 +154,15 @@ def delete_dashboard_plan(
     return {"status": "archived"}
 
 @router.get("/api/dashboard/subscriptions")
-def list_dashboard_subscriptions(merchant: Merchant = Depends(get_current_merchant), db: Session = Depends(get_db)):
-    subs = db.query(Subscription).filter(Subscription.merchant_id == merchant.id).all()
+def list_dashboard_subscriptions(
+    api_key_id: Optional[str] = None,
+    merchant: Merchant = Depends(get_current_merchant),
+    db: Session = Depends(get_db)
+):
+    query = db.query(Subscription).filter(Subscription.merchant_id == merchant.id)
+    if api_key_id:
+        query = query.join(Plan).filter(Plan.api_key_id == api_key_id)
+    subs = query.all()
     return [
         {
             "id": s.id,
@@ -141,7 +170,36 @@ def list_dashboard_subscriptions(merchant: Merchant = Depends(get_current_mercha
             "customer_email": s.customer_email,
             "status": s.status,
             "plan_name": s.plan.name,
+            "plan_amount": float(s.plan.amount),
+            "plan_currency": s.plan.currency,
+            "api_key_label": s.plan.api_key.label if s.plan.api_key else "Direct / No Key",
             "period_start": s.current_period_start.isoformat(),
             "period_end": s.current_period_end.isoformat()
         } for s in subs
     ]
+
+@router.get("/api/dashboard/wallet-balance")
+async def get_wallet_balance_route(
+    api_key_id: Optional[str] = None,
+    merchant: Merchant = Depends(get_current_merchant),
+    db: Session = Depends(get_db)
+):
+    sub_account_id = None
+    if api_key_id:
+        api_key = db.query(APIKey).filter(APIKey.id == api_key_id, APIKey.merchant_id == merchant.id).first()
+        if api_key:
+            sub_account_id = api_key.nomba_sub_account_id
+            
+    from app.core.nomba_client import nomba_client
+    try:
+        balance_data = await nomba_client.get_wallet_balance(sub_account_id=sub_account_id)
+        return {
+            "amount": float(balance_data["amount"]),
+            "currency": balance_data["currency"]
+        }
+    except Exception as e:
+        return {
+            "amount": 0.0,
+            "currency": "NGN",
+            "error": str(e)
+        }

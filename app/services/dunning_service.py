@@ -60,12 +60,14 @@ class DunningService:
 
         try:
             print(f"[DUNNING] Charging card token for subscription: {subscription.id} (amount: {plan.amount})")
+            sub_acc_id = plan.api_key.nomba_sub_account_id if plan.api_key else None
             resp = await nomba_client.charge_tokenized_card(
                 token_key=subscription.token_key,
                 order_ref=order_ref,
                 amount=float(plan.amount),
                 idempotency_key=idempotency_key,
-                currency=str(plan.currency)
+                currency=str(plan.currency),
+                sub_account_id=sub_acc_id
             )
             
             # Check response code
