@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from app.core.database import get_db
-from app.api import router_auth, router_plans, router_subscriptions, router_webhooks, router_dashboard, router_portal, developer_routes
+from app.api import router_auth, router_plans, router_subscriptions, router_payments, router_webhooks, router_dashboard, router_portal, developer_routes
 
 app = FastAPI(
     title="Cadence Subscription Engine",
@@ -14,6 +14,7 @@ app = FastAPI(
 app.include_router(router_auth.router)
 app.include_router(router_plans.router)
 app.include_router(router_subscriptions.router)
+app.include_router(router_payments.router)
 app.include_router(router_webhooks.router)
 
 # UI/Template Routers

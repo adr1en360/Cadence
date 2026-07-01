@@ -2,9 +2,11 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session
 from typing import List, Optional
+from datetime import datetime, timedelta
+import secrets
 from app.core.database import get_db
-from app.api.deps import get_merchant_by_api_key
-from app.models.merchant import Merchant
+from app.api.deps import get_project_by_api_key
+from app.models.project import Project
 from app.models.plan import Plan
 from app.models.subscription import Subscription
 from app.services.billing_service import BillingService
@@ -30,10 +32,10 @@ class SubscriptionResponse(BaseModel):
 @router.post("", status_code=status.HTTP_201_CREATED)
 async def create_subscription(
     payload: SubscriptionCreateRequest,
-    merchant: Merchant = Depends(get_merchant_by_api_key),
+    project: Project = Depends(get_project_by_api_key),
     db: Session = Depends(get_db)
 ):
-    plan = db.query(Plan).filter(Plan.id == payload.plan_id, Plan.merchant_id == merchant.id).first()
+    plan = db.query(Plan).filter(Plan.id == payload.plan_id, Plan.project_id == project.id).first()
     if not plan:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -43,7 +45,7 @@ async def create_subscription(
     try:
         subscription, checkout_link = await BillingService.create_subscription(
             db=db,
-            merchant=merchant,
+            project=project,
             plan=plan,
             customer_email=payload.customer_email,
             customer_name=payload.customer_name,
@@ -68,10 +70,14 @@ async def create_subscription(
 
 @router.get("")
 def list_subscriptions(
-    merchant: Merchant = Depends(get_merchant_by_api_key),
+    status_filter: Optional[str] = None,
+    project: Project = Depends(get_project_by_api_key),
     db: Session = Depends(get_db)
 ):
-    subs = db.query(Subscription).filter(Subscription.merchant_id == merchant.id).all()
+    query = db.query(Subscription).filter(Subscription.project_id == project.id)
+    if status_filter:
+        query = query.filter(Subscription.status == status_filter)
+    subs = query.all()
     return [
         {
             "id": s.id,
@@ -87,10 +93,10 @@ def list_subscriptions(
 @router.get("/{sub_id}")
 def get_subscription(
     sub_id: str,
-    merchant: Merchant = Depends(get_merchant_by_api_key),
+    project: Project = Depends(get_project_by_api_key),
     db: Session = Depends(get_db)
 ):
-    sub = db.query(Subscription).filter(Subscription.id == sub_id, Subscription.merchant_id == merchant.id).first()
+    sub = db.query(Subscription).filter(Subscription.id == sub_id, Subscription.project_id == project.id).first()
     if not sub:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -116,10 +122,10 @@ def get_subscription(
 @router.post("/{sub_id}/cancel")
 def cancel_subscription(
     sub_id: str,
-    merchant: Merchant = Depends(get_merchant_by_api_key),
+    project: Project = Depends(get_project_by_api_key),
     db: Session = Depends(get_db)
 ):
-    sub = db.query(Subscription).filter(Subscription.id == sub_id, Subscription.merchant_id == merchant.id).first()
+    sub = db.query(Subscription).filter(Subscription.id == sub_id, Subscription.project_id == project.id).first()
     if not sub:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -134,3 +140,29 @@ def cancel_subscription(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
+
+@router.post("/{sub_id}/portal-link")
+def generate_portal_link(
+    sub_id: str,
+    project: Project = Depends(get_project_by_api_key),
+    db: Session = Depends(get_db)
+):
+    sub = db.query(Subscription).filter(Subscription.id == sub_id, Subscription.project_id == project.id).first()
+    if not sub:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Subscription not found"
+        )
+        
+    token = secrets.token_urlsafe(32)
+    sub.portal_token = token
+    sub.portal_token_expires_at = datetime.utcnow() + timedelta(hours=2)
+    db.add(sub)
+    db.commit()
+    
+    # Generate tokenized magic URL
+    portal_url = f"http://localhost:8000/portal/{sub.id}?token={token}"
+    return {
+        "portal_url": portal_url,
+        "expires_at": sub.portal_token_expires_at.isoformat()
+    }

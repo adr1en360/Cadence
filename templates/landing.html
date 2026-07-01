@@ -214,8 +214,8 @@
                 <div style="font-size: 0.75rem; color: #6B6B76;">cadence-cli --status</div>
             </div>
             <div>
-                <span style="color: #FF6B00;">$</span> cadence run scheduler --verbose<br>
-                <span style="color: #6B6B76;">[2026-07-01 13:42:00]</span> INFO: Starting background dunning scheduler thread...<br>
+                <span style="color: #FF6B00;">$</span> python -m scripts.run_dunning --verbose<br>
+                <span style="color: #6B6B76;">[2026-07-01 13:42:00]</span> INFO: Starting dunning scheduler cron job run...<br>
                 <span style="color: #6B6B76;">[2026-07-01 13:42:01]</span> INFO: Fetching active subscription periods due for renewal...<br>
                 <span style="color: #10B981;">[SUCCESS]</span> Found subscription <span style="color: #818CF8;">sub_89ac12</span> for customer "Tunde Balogun"<br>
                 <span style="color: #6B6B76;">[2026-07-01 13:42:02]</span> INFO: Initiating tokenized charge via Nomba APIs (amount: ₦15,000.00)<br>

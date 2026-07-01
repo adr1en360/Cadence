@@ -5,7 +5,7 @@ from app.models.subscription import Subscription
 from app.models.payment import Payment
 from app.models.event import Event
 from app.models.plan import Plan
-from app.models.merchant import Merchant
+from app.models.project import Project
 from app.core.nomba_client import nomba_client
 
 VALID_TRANSITIONS = {
@@ -35,9 +35,9 @@ class BillingService:
         
         # Log to Event audit log
         event = Event(
-            merchant_id=subscription.merchant_id,
+            project_id=subscription.project_id,
             subscription_id=subscription.id,
-            event_type=f"subscription.status_updated",
+            event_type="subscription.status_updated",
             data_json=json.dumps({
                 "subscription_id": subscription.id,
                 "old_state": old_state,
@@ -50,14 +50,13 @@ class BillingService:
     @staticmethod
     async def create_subscription(
         db: Session,
-        merchant: Merchant,
+        project: Project,
         plan: Plan,
         customer_email: str,
         customer_name: str,
         callback_url: str
     ) -> tuple[Subscription, str]:
         """Initialize subscription and create a tokenized checkout order with Nomba."""
-        # Check if plan has trial
         now = datetime.utcnow()
         has_trial = plan.trial_days and plan.trial_days > 0
         
@@ -67,7 +66,7 @@ class BillingService:
         
         # Create Subscription record (starts as pending/trialing or active pending checkout)
         subscription = Subscription(
-            merchant_id=merchant.id,
+            project_id=project.id,
             plan_id=plan.id,
             customer_email=customer_email,
             customer_name=customer_name,
@@ -82,14 +81,13 @@ class BillingService:
 
         # Generate unique order reference
         order_ref = f"cadence_sub_{subscription.id[:8]}_{int(now.timestamp())}"
-        
-        # Determine charge amount: if trialing, checkouts are usually a token auth charge (like ₦50 or ₦100) or free order
-        # For simplicity, we create a checkout order for the plan amount (or first payment)
         charge_amount = float(plan.amount)
         
         # Create checkout order via Nomba client
         sub_acc_id = plan.api_key.nomba_sub_account_id if plan.api_key else None
         checkout_resp = await nomba_client.create_checkout_order(
+            db=db,
+            project=project,
             order_ref=order_ref,
             amount=charge_amount,
             customer_email=customer_email,
@@ -105,7 +103,7 @@ class BillingService:
         # Create pending Payment record
         payment = Payment(
             subscription_id=subscription.id,
-            merchant_id=merchant.id,
+            project_id=project.id,
             amount=plan.amount,
             currency=plan.currency,
             nomba_order_ref=order_ref,
@@ -152,6 +150,21 @@ class BillingService:
         else:
             db.add(subscription)
             
+        # Create Event for successful payment
+        event = Event(
+            project_id=subscription.project_id,
+            subscription_id=subscription.id,
+            event_type="payment.succeeded",
+            data_json=json.dumps({
+                "subscription_id": subscription.id,
+                "nomba_order_ref": nomba_order_ref,
+                "nomba_transaction_id": transaction_id,
+                "amount": float(payment.amount),
+                "timestamp": datetime.utcnow().isoformat()
+            })
+        )
+        db.add(event)
+        
         db.commit()
         return subscription
 
@@ -174,6 +187,19 @@ class BillingService:
         if subscription.status == "active":
             BillingService.transition_state(db, subscription, "past_due")
             
+        # Create Event for failed payment
+        event = Event(
+            project_id=subscription.project_id,
+            subscription_id=subscription.id,
+            event_type="payment.failed",
+            data_json=json.dumps({
+                "subscription_id": subscription.id,
+                "nomba_order_ref": nomba_order_ref,
+                "timestamp": datetime.utcnow().isoformat()
+            })
+        )
+        db.add(event)
+        
         db.commit()
         return subscription
 
@@ -183,4 +209,16 @@ class BillingService:
         BillingService.transition_state(db, subscription, "cancelled")
         subscription.cancelled_at = datetime.utcnow()
         db.add(subscription)
+        
+        # Create Event for cancellation
+        event = Event(
+            project_id=subscription.project_id,
+            subscription_id=subscription.id,
+            event_type="subscription.cancelled",
+            data_json=json.dumps({
+                "subscription_id": subscription.id,
+                "timestamp": datetime.utcnow().isoformat()
+            })
+        )
+        db.add(event)
         db.commit()

@@ -4,6 +4,7 @@
 
 {% block nav_links %}
     <span style="font-size: 0.9rem; color: var(--text-secondary); margin-right: 0.5rem;">Logged in as: <strong style="color: white; font-weight: 600;">{{ merchant.name }}</strong></span>
+    <a href="/developer" class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.8rem; margin-right: 0.5rem;">Developer Docs</a>
     <a href="#" id="logout-btn" class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.8rem;">Logout</a>
 {% endblock %}
 
@@ -32,11 +33,11 @@
         min-width: 0;
     }
 
-    /* Project Selector */
-    .project-selector {
+    /* Project Selector Bar */
+    .project-selector-bar {
         display: flex;
         align-items: center;
-        gap: 0.75rem;
+        justify-content: space-between;
         margin-bottom: 1.5rem;
         padding: 0.85rem 1.25rem;
         background: var(--bg-card);
@@ -45,7 +46,14 @@
         backdrop-filter: blur(12px);
     }
 
-    .project-selector label {
+    .project-selector-control {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex: 1;
+    }
+
+    .project-selector-control label {
         font-size: 0.75rem;
         font-weight: 600;
         text-transform: uppercase;
@@ -54,8 +62,8 @@
         white-space: nowrap;
     }
 
-    .project-selector select {
-        flex: 1;
+    .project-selector-control select {
+        width: 280px;
         background: rgba(255,255,255,0.03);
         border: 1px solid var(--border-color);
         border-radius: 8px;
@@ -67,15 +75,9 @@
         transition: border-color 0.2s ease;
     }
 
-    .project-selector select:focus {
+    .project-selector-control select:focus {
         outline: none;
         border-color: var(--primary);
-        box-shadow: 0 0 0 2px var(--glow-color);
-    }
-
-    .project-selector select option {
-        background: #1a1a1f;
-        color: white;
     }
 
     /* Tab Buttons */
@@ -124,25 +126,18 @@
         overflow: hidden;
     }
 
-    .metric-card::before {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        right: 0;
-        width: 60px;
-        height: 60px;
-        background: radial-gradient(circle, rgba(255, 107, 0, 0.08) 0%, transparent 70%);
-        pointer-events: none;
-    }
-
     .metric-value {
         font-family: var(--font-title);
-        font-size: 2.25rem;
+        font-size: 1.65rem;
         font-weight: 800;
         letter-spacing: -0.02em;
         background: linear-gradient(135deg, #FFFFFF 40%, var(--primary));
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        display: block;
     }
 
     /* Table Design */
@@ -159,7 +154,7 @@
     }
 
     th, td {
-        padding: 0.7rem 1rem;
+        padding: 0.75rem 1rem;
         text-align: left;
         border-bottom: 1px solid var(--border-color);
         font-size: 0.8rem;
@@ -186,29 +181,12 @@
         background: rgba(255, 255, 255, 0.015);
     }
 
-    tbody tr:last-child td {
-        border-bottom: none;
-    }
-
-    /* Section & Block headers */
-    .section-title {
-        font-family: var(--font-title);
-        font-size: 1.35rem;
-        font-weight: 700;
-        margin-bottom: 1.25rem;
-        color: var(--text-primary);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        letter-spacing: -0.01em;
-    }
-
     /* Modal Styling */
     .modal {
         display: none;
         position: fixed;
         inset: 0;
-        background: rgba(0, 0, 0, 0.7);
+        background: rgba(0, 0, 0, 0.75);
         backdrop-filter: blur(8px);
         z-index: 1000;
         align-items: center;
@@ -218,7 +196,7 @@
 
     .modal-content {
         width: 100%;
-        max-width: 480px;
+        max-width: 520px;
         padding: 2.5rem;
         border-radius: 20px;
         box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
@@ -254,41 +232,15 @@
         outline: none;
         border-color: var(--primary);
         box-shadow: 0 0 0 3px var(--glow-color);
-        background: rgba(255, 255, 255, 0.04);
     }
 
-    /* Warning callout */
-    .warning-callout {
-        background: rgba(245, 158, 11, 0.08);
-        border: 1px solid rgba(245, 158, 11, 0.2);
-        border-radius: 10px;
-        padding: 0.85rem 1rem;
-        font-size: 0.8rem;
-        color: #FBBF24;
-        margin-bottom: 1.25rem;
-        display: flex;
-        align-items: flex-start;
-        gap: 0.6rem;
-        line-height: 1.5;
-    }
-
-    /* Revoked key styling */
-    .key-revoked {
-        opacity: 0.5;
-    }
-
-    .badge-revoked {
-        background: rgba(239, 68, 68, 0.1);
-        color: #F87171;
-        border: 1px solid rgba(239, 68, 68, 0.2);
-        display: inline-flex;
-        align-items: center;
-        padding: 0.2rem 0.6rem;
-        border-radius: 9999px;
-        font-size: 0.65rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
+    /* Connection Card Accents */
+    .connection-panel {
+        background: radial-gradient(circle at top left, rgba(255, 107, 0, 0.05), transparent 70%);
+        border: 1px solid var(--border-color);
+        padding: 1.75rem;
+        border-radius: 16px;
+        margin-bottom: 2rem;
     }
 
     .badge-live {
@@ -301,40 +253,26 @@
         border-radius: 9999px;
         font-size: 0.65rem;
         font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
     }
 
-    /* Status Badges */
-    .badge {
+    .badge-pending {
+        background: rgba(245, 158, 11, 0.1);
+        color: #FBBF24;
+        border: 1px solid rgba(245, 158, 11, 0.2);
         display: inline-flex;
         align-items: center;
         padding: 0.2rem 0.6rem;
         border-radius: 9999px;
         font-size: 0.65rem;
         font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
     }
-    .badge-active {
-        background: rgba(16, 185, 129, 0.1);
-        color: #34D399;
-        border: 1px solid rgba(16, 185, 129, 0.2);
-    }
-    .badge-trialing {
-        background: rgba(96, 165, 250, 0.1);
-        color: #60A5FA;
-        border: 1px solid rgba(96, 165, 250, 0.2);
-    }
-    .badge-past_due {
-        background: rgba(245, 158, 11, 0.1);
-        color: #FBBF24;
-        border: 1px solid rgba(245, 158, 11, 0.2);
-    }
-    .badge-cancelled {
-        background: rgba(239, 68, 68, 0.1);
-        color: #F87171;
-        border: 1px solid rgba(239, 68, 68, 0.2);
+
+    .sub-history-panel {
+        margin-top: 1rem;
+        padding: 1.25rem;
+        background: rgba(255, 255, 255, 0.015);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
     }
 
     @keyframes tabFade {
@@ -346,37 +284,38 @@
         from { opacity: 0; }
         to { opacity: 1; }
     }
-
-    @media (max-width: 900px) {
-        .dashboard-layout {
-            flex-direction: column;
-            align-items: stretch;
-        }
-        .dashboard-sidebar {
-            width: 100%;
-            flex-direction: row;
-            overflow-x: auto;
-            position: static;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid var(--border-color);
-        }
-        .tab-btn {
-            white-space: nowrap;
-        }
-    }
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- Project Selector -->
-<div class="project-selector" id="project-selector-bar">
-    <label for="project-select">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align: -2px; margin-right: 4px;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-        Project
-    </label>
-    <select id="project-select">
-        <option value="">All Projects</option>
-    </select>
+<!-- Project Selector & Creation Bar -->
+<div class="project-selector-bar" id="project-selector-bar">
+    <div class="project-selector-control">
+        <label for="project-select">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align: -2px; margin-right: 4px;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+            Active Project:
+        </label>
+        <select id="project-select">
+            <option value="">Loading Projects...</option>
+        </select>
+    </div>
+    <button class="btn btn-secondary" onclick="openModal('project-modal')" style="font-size: 0.8rem; padding: 0.55rem 1.1rem;">+ New Project</button>
+</div>
+
+<!-- Onboarding / Connection Alert -->
+<div id="connection-alert" class="connection-panel" style="display: none;">
+    <div style="display: flex; justify-content: space-between; align-items: start;">
+        <div>
+            <h3 style="font-family: var(--font-title); font-size: 1.15rem; font-weight: 700; color: #fbbf24; display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                Nomba Account Connection Required
+            </h3>
+            <p style="color: var(--text-secondary); font-size: 0.85rem; max-width: 600px; line-height: 1.5; margin-bottom: 1rem;">
+                This project has no Nomba credentials connected. In order to charge tokenized cards, create checkout orders, and verify transactions, you must link your Nomba developer client ID and client secret.
+            </p>
+        </div>
+        <button class="btn" onclick="showTab('settings')">Connect Credentials</button>
+    </div>
 </div>
 
 <div class="dashboard-layout">
@@ -391,13 +330,13 @@
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M12 4v16M2 10h20M2 14h20"/></svg>
             <span>Billing Plans</span>
         </button>
-        <button id="btn-keys" class="tab-btn" onclick="showTab('keys')">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            <span>Developer Keys</span>
-        </button>
         <button id="btn-subscribers" class="tab-btn" onclick="showTab('subscribers')">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
             <span>Subscribers</span>
+        </button>
+        <button id="btn-settings" class="tab-btn" onclick="showTab('settings')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            <span>Project Settings</span>
         </button>
     </div>
 
@@ -466,7 +405,7 @@
                                 <th>Plan Name</th>
                                 <th>Amount</th>
                                 <th>Billing Interval</th>
-                                <th>Project</th>
+                                <th>API Key Scope</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
@@ -478,38 +417,11 @@
             </div>
         </div>
 
-        <!-- Tab: Keys -->
-        <div id="keys" class="tab-content">
-            <div class="glass-card" style="padding: 2rem;">
-                <div class="section-title">
-                    <span>Developer API Keys</span>
-                    <button class="btn" onclick="openModal('key-modal')" style="font-size: 0.8rem; padding: 0.5rem 1rem;">+ Generate Key</button>
-                </div>
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Key Label</th>
-                                <th>Key Prefix</th>
-                                <th>Sub-Account</th>
-                                <th>Status</th>
-                                <th>Created</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="keys-table-body">
-                            <tr><td colspan="6" style="color: var(--text-secondary); text-align: center; padding: 1.5rem 0;">Loading keys...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
         <!-- Tab: Subscribers -->
         <div id="subscribers" class="tab-content">
             <div class="glass-card" style="padding: 2rem;">
                 <div class="section-title">
-                    <span>Subscribers</span>
+                    <span>Subscriptions</span>
                 </div>
                 <div class="table-container">
                     <table>
@@ -518,10 +430,10 @@
                                 <th>Customer</th>
                                 <th>Plan</th>
                                 <th>Amount</th>
-                                <th>Project</th>
+                                <th>Scope Key</th>
                                 <th>Status</th>
                                 <th>Expires</th>
-                                <th>Portal</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="subs-table-body">
@@ -529,9 +441,129 @@
                         </tbody>
                     </table>
                 </div>
+                
+                <!-- Expanded Subscription Logs & Management details pane -->
+                <div id="subscriber-details-pane" style="display: none; margin-top: 2rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                        <h3 id="details-customer-title" style="font-family: var(--font-title); font-size: 1.2rem; font-weight: 700; color: white;">Subscriber Details</h3>
+                        <button class="btn btn-secondary" onclick="closeDetails()" style="font-size: 0.75rem; padding: 0.35rem 0.8rem;">Collapse Details</button>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                        <div>
+                            <h4 style="font-size: 0.85rem; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 0.75rem; letter-spacing: 0.05em;">Payment Attempts (Refund Desk)</h4>
+                            <div class="table-container">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Amount</th>
+                                            <th>Status</th>
+                                            <th>Ref / Txn ID</th>
+                                            <th>Created</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="details-payments-body"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 style="font-size: 0.85rem; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 0.75rem; letter-spacing: 0.05em;">Audit & Webhook Logs</h4>
+                            <div class="table-container">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Event Type</th>
+                                            <th>Payload Details</th>
+                                            <th>Timestamp</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="details-events-body"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
+        <!-- Tab: Settings (Nomba & API Keys) -->
+        <div id="settings" class="tab-content">
+            <div style="display: flex; flex-direction: column; gap: 2.25rem;">
+                
+                <!-- Nomba Connection Details -->
+                <div class="glass-card" style="padding: 2rem;">
+                    <h3 style="font-family: var(--font-title); font-size: 1.2rem; font-weight: 700; color: var(--primary); margin-bottom: 1.25rem;">Nomba Account Connection</h3>
+                    <form id="connection-settings-form">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
+                            <div class="form-group">
+                                <label>Nomba Client ID</label>
+                                <input type="text" id="settings-client-id" class="form-control" placeholder="client_..." required>
+                            </div>
+                            <div class="form-group">
+                                <label>Nomba Account ID (Parent account)</label>
+                                <input type="text" id="settings-account-id" class="form-control" placeholder="762..." required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Nomba Client Secret</label>
+                            <input type="password" id="settings-client-secret" class="form-control" placeholder="Enter Nomba OAuth private client secret" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Webhook URL (Where Cadence sends events to your backend)</label>
+                            <input type="url" id="settings-webhook-url" class="form-control" placeholder="https://your-api.com/webhooks/cadence">
+                        </div>
+                        <div style="display: flex; justify-content: flex-end; margin-top: 1rem;">
+                            <button type="submit" class="btn">Save & Connect Credentials</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- API Keys section inside settings -->
+                <div class="glass-card" style="padding: 2rem;">
+                    <div class="section-title">
+                        <span>Developer API Keys</span>
+                        <button class="btn" onclick="openModal('key-modal')" style="font-size: 0.8rem; padding: 0.5rem 1rem;">+ Generate API Key</button>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Key Label</th>
+                                    <th>Key Prefix</th>
+                                    <th>Sub-Account Limit</th>
+                                    <th>Status</th>
+                                    <th>Created</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="keys-table-body">
+                                <tr><td colspan="6" style="color: var(--text-secondary); text-align: center; padding: 1.5rem 0;">Loading keys...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Project Creation Modal -->
+<div id="project-modal" class="modal">
+    <div class="glass-card modal-content">
+        <h3 style="margin-bottom: 1.5rem; font-family: var(--font-title); font-size: 1.35rem; font-weight: 700; color: var(--primary);">Create New Project</h3>
+        <form id="project-form">
+            <div class="form-group">
+                <label>Project Name</label>
+                <input type="text" id="project-name" class="form-control" placeholder="e.g. SchoolPadi Live" required>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.75rem;">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('project-modal')">Cancel</button>
+                <button type="submit" class="btn">Create Project</button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -556,6 +588,12 @@
                 <label>Trial Days (Optional)</label>
                 <input type="number" id="plan-trial" class="form-control" value="0">
             </div>
+            <div class="form-group">
+                <label>Developer API Key Scope (Associates payments to sub-account)</label>
+                <select id="plan-key-scope" class="form-control">
+                    <option value="">No Scope (Direct Project Wallet)</option>
+                </select>
+            </div>
             <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.75rem;">
                 <button type="button" class="btn btn-secondary" onclick="closeModal('plan-modal')">Cancel</button>
                 <button type="submit" class="btn">Create Plan</button>
@@ -570,12 +608,12 @@
         <h3 style="margin-bottom: 1.5rem; font-family: var(--font-title); font-size: 1.35rem; font-weight: 700; color: var(--primary);">Generate Developer API Key</h3>
         <form id="key-form">
             <div class="form-group">
-                <label>Key Label (Project Name)</label>
-                <input type="text" id="key-label" class="form-control" placeholder="SchoolPadi, RentBike, etc." required>
+                <label>Key Label</label>
+                <input type="text" id="key-label" class="form-control" placeholder="Production Server Key" required>
             </div>
             <div class="form-group">
                 <label>Nomba Sub-Account ID (Optional)</label>
-                <input type="text" id="key-sub-account" class="form-control" placeholder="Leave blank to use main wallet">
+                <input type="text" id="key-sub-account" class="form-control" placeholder="Leave blank to use main project wallet">
             </div>
             <div class="warning-callout" id="key-warning-before">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0; margin-top:1px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
@@ -611,8 +649,10 @@
     };
 
     // State
+    let allProjects = [];
+    let activeProject = null;
     let allKeys = [];
-    let selectedProjectId = "";
+    let allSubscriptionsData = [];
 
     // Logout
     document.getElementById("logout-btn").addEventListener("click", (e) => {
@@ -623,6 +663,17 @@
 
     const openModal = (id) => {
         document.getElementById(id).style.display = "flex";
+        if (id === 'plan-modal') {
+            // Populate select list for API keys scopes in plan creation
+            const scopeSelect = document.getElementById("plan-key-scope");
+            scopeSelect.innerHTML = '<option value="">No Scope (Direct Project Wallet)</option>';
+            allKeys.filter(k => k.is_active).forEach(k => {
+                const opt = document.createElement("option");
+                opt.value = k.id;
+                opt.textContent = k.label;
+                scopeSelect.appendChild(opt);
+            });
+        }
     };
 
     const closeModal = (id) => {
@@ -653,35 +704,124 @@
 
     // Project selector change
     document.getElementById("project-select").addEventListener("change", (e) => {
-        selectedProjectId = e.target.value;
+        const val = e.target.value;
+        activeProject = allProjects.find(p => p.id === val) || null;
         loadData();
     });
 
-    // Build query string for api_key_id filtering
-    const projectParam = () => selectedProjectId ? `?api_key_id=${selectedProjectId}` : "";
-
-    // Load Data
-    const loadData = async () => {
+    // Create New Project Form submission
+    document.getElementById("project-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const name = document.getElementById("project-name").value;
         try {
-            // Load keys first (needed for project selector)
-            const keysResp = await fetch("/api/auth/api-keys", { headers: authHeaders });
+            const resp = await fetch("/api/dashboard/projects", {
+                method: "POST",
+                headers: authHeaders,
+                body: JSON.stringify({ name })
+            });
+            const data = await resp.json();
+            if (resp.ok) {
+                closeModal("project-modal");
+                document.getElementById("project-form").reset();
+                // Reload projects listing, setting the new project as active
+                await loadProjects(data.id);
+            } else {
+                alert(data.detail || "Failed to create project");
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    });
+
+    // Save Project Connection settings form
+    document.getElementById("connection-settings-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        if (!activeProject) return alert("Please select a project first.");
+        
+        const payload = {
+            nomba_client_id: document.getElementById("settings-client-id").value,
+            nomba_client_secret: document.getElementById("settings-client-secret").value,
+            nomba_account_id: document.getElementById("settings-account-id").value,
+            webhook_url: document.getElementById("settings-webhook-url").value
+        };
+
+        try {
+            const resp = await fetch(`/api/dashboard/projects/${activeProject.id}/settings`, {
+                method: "POST",
+                headers: authHeaders,
+                body: JSON.stringify(payload)
+            });
+            const data = await resp.json();
+            if (resp.ok) {
+                alert("Nomba credentials and webhook settings updated successfully.");
+                // Reload projects to fetch the updated configuration status
+                await loadProjects(activeProject.id);
+            } else {
+                alert(data.detail || "Failed to update project settings");
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    });
+
+    // Load Projects
+    const loadProjects = async (activeId = null) => {
+        const projectsResp = await fetch("/api/dashboard/projects", { headers: authHeaders });
+        allProjects = await projectsResp.json();
+        
+        const select = document.getElementById("project-select");
+        select.innerHTML = "";
+        
+        if (!allProjects.length) {
+            select.innerHTML = '<option value="">No Active Projects</option>';
+            activeProject = null;
+            return;
+        }
+
+        allProjects.forEach(p => {
+            const opt = document.createElement("option");
+            opt.value = p.id;
+            opt.textContent = p.name;
+            select.appendChild(opt);
+        });
+
+        // Set active project selection
+        if (activeId && allProjects.find(p => p.id === activeId)) {
+            select.value = activeId;
+        } else {
+            select.value = allProjects[0].id;
+        }
+        activeProject = allProjects.find(p => p.id === select.value) || null;
+        loadData();
+    };
+
+    // Load Data for active project
+    const loadData = async () => {
+        if (!activeProject) {
+            document.getElementById("connection-alert").style.display = "none";
+            return;
+        }
+
+        const project_id = activeProject.id;
+        const projectParam = `?project_id=${project_id}`;
+
+        // Update settings UI values with active project configurations
+        document.getElementById("settings-client-id").value = activeProject.nomba_client_id || "";
+        document.getElementById("settings-account-id").value = activeProject.nomba_account_id || "";
+        document.getElementById("settings-client-secret").value = activeProject.nomba_client_secret_configured ? "********" : "";
+        document.getElementById("settings-webhook-url").value = activeProject.webhook_url || "";
+
+        // Trigger connection warning if Nomba credentials are unset
+        const missingCreds = !activeProject.nomba_client_id || !activeProject.nomba_account_id || !activeProject.nomba_client_secret_configured;
+        document.getElementById("connection-alert").style.display = missingCreds ? "block" : "none";
+
+        try {
+            // Load keys associated with active project
+            const keysResp = await fetch(`/api/auth/api-keys${projectParam}`, { headers: authHeaders });
             allKeys = await keysResp.json();
 
-            // Populate project selector (preserve current selection)
-            const select = document.getElementById("project-select");
-            const currentVal = select.value;
-            select.innerHTML = '<option value="">All Projects</option>';
-            allKeys.filter(k => k.is_active).forEach(k => {
-                const opt = document.createElement("option");
-                opt.value = k.id;
-                opt.textContent = `${k.label} (${k.prefix}...)`;
-                select.appendChild(opt);
-            });
-            select.value = currentVal || "";
-            selectedProjectId = select.value;
-
             // Load dashboard totals
-            const statsResp = await fetch(`/api/dashboard/stats${projectParam()}`, { headers: authHeaders });
+            const statsResp = await fetch(`/api/dashboard/stats${projectParam}`, { headers: authHeaders });
             const stats = await statsResp.json();
             
             document.getElementById("val-active-subs").innerText = stats.active_subscribers;
@@ -690,15 +830,19 @@
 
             // Load wallet balance
             try {
-                const walletResp = await fetch(`/api/dashboard/wallet-balance${projectParam()}`, { headers: authHeaders });
+                const walletResp = await fetch(`/api/dashboard/wallet-balance${projectParam}`, { headers: authHeaders });
                 const wallet = await walletResp.json();
-                document.getElementById("val-wallet-balance").innerText = `₦${wallet.amount.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+                if (wallet.error) {
+                    document.getElementById("val-wallet-balance").innerText = "—";
+                } else {
+                    document.getElementById("val-wallet-balance").innerText = `₦${wallet.amount.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+                }
             } catch(e) {
                 document.getElementById("val-wallet-balance").innerText = "—";
             }
 
             // Load Plans
-            const plansResp = await fetch(`/api/dashboard/plans${projectParam()}`, { headers: authHeaders });
+            const plansResp = await fetch(`/api/dashboard/plans${projectParam}`, { headers: authHeaders });
             const plans = await plansResp.json();
             const plansBody = document.getElementById("plans-table-body");
             plansBody.innerHTML = plans.length ? plans.map(p => `
@@ -717,7 +861,7 @@
                 <tr class="${k.is_active ? '' : 'key-revoked'}">
                     <td style="font-weight: 500;">${k.label}</td>
                     <td><code style="color: var(--primary); background: rgba(255, 107, 0, 0.05); padding: 0.2rem 0.45rem; border-radius: 6px; border: 1px solid rgba(255, 107, 0, 0.1); font-size: 0.75rem;">${k.prefix}...</code></td>
-                    <td style="color: var(--text-secondary); font-size: 0.75rem;">${k.nomba_sub_account_id || 'Main Wallet'}</td>
+                    <td style="color: var(--text-secondary); font-size: 0.75rem;">${k.nomba_sub_account_id || 'Main wallet'}</td>
                     <td>${k.is_active ? '<span class="badge-live">Live</span>' : '<span class="badge-revoked">Revoked</span>'}</td>
                     <td style="color: var(--text-secondary); font-size: 0.75rem;">${new Date(k.created_at).toLocaleDateString()}</td>
                     <td>${k.is_active ? `<button class="btn btn-secondary" onclick="revokeKey('${k.id}')" style="padding: 0.3rem 0.7rem; font-size: 0.7rem; color: var(--danger); border-color: rgba(239, 68, 68, 0.15);">Revoke</button>` : '—'}</td>
@@ -725,12 +869,12 @@
             `).join('') : `<tr><td colspan="6" style="text-align: center; color: var(--text-secondary); padding: 1.5rem 0;">No API keys generated</td></tr>`;
 
             // Load Subscriptions
-            const subsResp = await fetch(`/api/dashboard/subscriptions${projectParam()}`, { headers: authHeaders });
-            const subs = await subsResp.json();
+            const subsResp = await fetch(`/api/dashboard/subscriptions${projectParam}`, { headers: authHeaders });
+            allSubscriptionsData = await subsResp.json();
             
             // Full subscribers body
             const subsBody = document.getElementById("subs-table-body");
-            subsBody.innerHTML = subs.length ? subs.map(s => `
+            subsBody.innerHTML = allSubscriptionsData.length ? allSubscriptionsData.map(s => `
                 <tr>
                     <td>
                         <div style="font-weight: 600; color: white; font-size: 0.8rem;">${s.customer_name || 'N/A'}</div>
@@ -741,13 +885,18 @@
                     <td style="color: var(--text-secondary); font-size: 0.75rem;">${s.api_key_label}</td>
                     <td><span class="badge badge-${s.status}">${s.status}</span></td>
                     <td style="color: var(--text-secondary); font-size: 0.75rem;">${new Date(s.period_end).toLocaleDateString()}</td>
-                    <td><a href="/portal/${s.id}" style="color: var(--primary); font-size: 0.75rem; text-decoration: none; font-weight: 600;">Open →</a></td>
+                    <td>
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <button class="btn btn-secondary" onclick="showDetails('${s.id}')" style="padding: 0.35rem 0.6rem; font-size: 0.7rem;">Manage Logs</button>
+                            <button class="btn btn-secondary" onclick="generatePortalLink('${s.id}')" style="padding: 0.35rem 0.6rem; font-size: 0.7rem; color: var(--primary); border-color: rgba(255, 107, 0, 0.15);">Get Magic Link</button>
+                        </div>
+                    </td>
                 </tr>
             `).join('') : `<tr><td colspan="7" style="text-align: center; color: var(--text-secondary); padding: 1.5rem 0;">No subscriptions found</td></tr>`;
 
             // Overview quick list (first 3)
             const quickBody = document.getElementById("quick-subs-body");
-            const quickSubs = subs.slice(0, 3);
+            const quickSubs = allSubscriptionsData.slice(0, 3);
             quickBody.innerHTML = quickSubs.length ? quickSubs.map(s => `
                 <tr>
                     <td>
@@ -765,15 +914,125 @@
         }
     };
 
+    // Show subscriber details pane (payments and events)
+    const showDetails = (subId) => {
+        const sub = allSubscriptionsData.find(s => s.id === subId);
+        if (!sub) return;
+        
+        document.getElementById("subscriber-details-pane").style.display = "block";
+        document.getElementById("details-customer-title").innerText = `Logs & Control for ${sub.customer_name || 'Subscriber'} (${sub.customer_email})`;
+        
+        // Populate payments
+        const paymentsBody = document.getElementById("details-payments-body");
+        paymentsBody.innerHTML = sub.payments.length ? sub.payments.map(p => `
+            <tr>
+                <td style="font-weight: 600; color: var(--primary);">₦${p.amount.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+                <td><span class="badge badge-${p.status}">${p.status}</span></td>
+                <td>
+                    <div style="font-size: 0.75rem; color: white; font-family: monospace;">Ref: ${p.nomba_order_ref}</div>
+                    ${p.nomba_transaction_id ? `<div style="font-size: 0.7rem; color: var(--text-secondary); font-family: monospace;">Txn ID: ${p.nomba_transaction_id}</div>` : ''}
+                </td>
+                <td style="color: var(--text-secondary); font-size: 0.75rem;">${new Date(p.created_at).toLocaleString()}</td>
+                <td>
+                    ${p.status === 'succeeded' ? `<button class="btn" onclick="refundPayment('${p.id}', '${subId}')" style="padding: 0.25rem 0.5rem; font-size: 0.65rem; color: var(--danger); border-color: rgba(239, 68, 68, 0.15); background: transparent;">Refund</button>` : '—'}
+                </td>
+            </tr>
+        `).join('') : `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary); padding: 1rem 0;">No payment attempts logged</td></tr>`;
+        
+        // Populate events
+        const eventsBody = document.getElementById("details-events-body");
+        eventsBody.innerHTML = sub.events.length ? sub.events.map(e => `
+            <tr>
+                <td><code style="color: var(--primary); font-size: 0.75rem;">${e.event_type}</code></td>
+                <td>
+                    <pre style="font-family: monospace; font-size: 0.7rem; color: var(--text-secondary); margin: 0; white-space: pre-wrap; word-break: break-all;">${JSON.stringify(e.data, null, 2)}</pre>
+                </td>
+                <td style="color: var(--text-secondary); font-size: 0.75rem; white-space: nowrap;">${new Date(e.created_at).toLocaleString()}</td>
+            </tr>
+        `).join('') : `<tr><td colspan="3" style="text-align: center; color: var(--text-secondary); padding: 1rem 0;">No audit events logged</td></tr>`;
+        
+        // Smooth scroll to details pane
+        document.getElementById("subscriber-details-pane").scrollIntoView({ behavior: 'smooth' });
+    };
+
+    const closeDetails = () => {
+        document.getElementById("subscriber-details-pane").style.display = "none";
+    };
+
+    // Programmatically request magic link and display to merchant
+    const generatePortalLink = async (subId) => {
+        try {
+            // Note: Since developer keys are scoped to project, we can fetch using our developer keys or we can expose a dashboard utility route.
+            // For dashboard context, let's call the public developer API endpoint. But wait! The developer endpoint requires a Bearer API Key in Authorization header,
+            // while the dashboard has a JWT session token in cookies!
+            // Let's create a dashboard-specific session helper for generating portal links, OR we can use the project's first active key!
+            // Using the project's active API Key to make the request mimics exactly how a developer would call it!
+            const activeKey = allKeys.find(k => k.is_active);
+            if (!activeKey) {
+                return alert("You must create at least one active API Key in the settings tab first to generate portal links.");
+            }
+            
+            // Re-authenticate using the API Key
+            // Prefix + plain key mapping: wait! The API returns plain key ONLY once upon creation. In `allKeys` fetched from `/api-keys`, we only get prefix.
+            // Oh! We cannot construct the full key from prefix alone!
+            // Therefore, let's create a dashboard-session API endpoint on the backend or reuse a helper.
+            // Wait, does router_portal.py have a generate link? No, but we can generate the link directly or add a dashboard session endpoint!
+            // Wait, can we call a dashboard session-auth endpoint `/api/dashboard/subscriptions/${subId}/portal-link`?
+            // Yes! Let's expose this route in `router_dashboard.py` so the dashboard JS can easily generate links using the JWT session instead of requiring developer API keys!
+            // That is incredibly clean and prevents complexity. Let's make sure we add it to router_dashboard.py.
+            // Wait, we can implement it in the fetch call directly on router_dashboard.py, let's add it right away!
+            const resp = await fetch(`/api/dashboard/subscriptions/${subId}/portal-link`, {
+                method: "POST",
+                headers: authHeaders
+            });
+            const data = await resp.json();
+            if (resp.ok) {
+                prompt("Subscriber Portal Magic Link generated successfully. Copy it below:", data.portal_url);
+            } else {
+                alert(data.detail || "Failed to generate magic link");
+            }
+        } catch(err) {
+            console.error(err);
+            alert("Error generating portal link");
+        }
+    };
+
+    // Trigger payment refund from dashboard
+    const refundPayment = async (paymentId, subId) => {
+        if (!confirm("Are you sure you want to refund this payment? This will call Nomba APIs to return funds to the customer card and mark the payment as refunded. Proceed?")) return;
+        try {
+            // Let's call the dashboard session-auth refund route
+            const resp = await fetch(`/api/dashboard/payments/${paymentId}/refund`, {
+                method: "POST",
+                headers: authHeaders
+            });
+            const data = await resp.json();
+            if (resp.ok) {
+                alert("Payment refunded successfully.");
+                // Reload details pane and statistics
+                await loadData();
+                showDetails(subId);
+            } else {
+                alert(data.detail || "Refund failed.");
+            }
+        } catch(err) {
+            console.error(err);
+            alert("Error processing refund.");
+        }
+    };
+
     // Create Plan
     document.getElementById("plan-form").addEventListener("submit", async (e) => {
         e.preventDefault();
+        if (!activeProject) return alert("Select a project first.");
+
         const payload = {
+            project_id: activeProject.id,
             name: document.getElementById("plan-name").value,
             amount: parseFloat(document.getElementById("plan-amount").value),
             interval_days: parseInt(document.getElementById("plan-interval").value),
             trial_days: parseInt(document.getElementById("plan-trial").value) || 0,
-            api_key_id: selectedProjectId || null
+            api_key_id: document.getElementById("plan-key-scope").value || null
         };
 
         try {
@@ -786,13 +1045,16 @@
                 closeModal("plan-modal");
                 document.getElementById("plan-form").reset();
                 loadData();
+            } else {
+                const data = await resp.json();
+                alert(data.detail || "Failed to create plan");
             }
         } catch (err) {
             console.error(err);
         }
     });
 
-    // Delete Plan
+    // Delete/Archive Plan
     const deletePlan = async (id) => {
         if (!confirm("Are you sure you want to archive this plan?")) return;
         try {
@@ -808,9 +1070,11 @@
         }
     };
 
-    // Generate Key
+    // Generate API Key
     document.getElementById("key-form").addEventListener("submit", async (e) => {
         e.preventDefault();
+        if (!activeProject) return alert("Select a project first.");
+
         const label = document.getElementById("key-label").value;
         const subAccountId = document.getElementById("key-sub-account").value || null;
 
@@ -818,7 +1082,7 @@
             const resp = await fetch("/api/auth/api-keys", {
                 method: "POST",
                 headers: authHeaders,
-                body: JSON.stringify({ label, nomba_sub_account_id: subAccountId })
+                body: JSON.stringify({ project_id: activeProject.id, label, nomba_sub_account_id: subAccountId })
             });
             const data = await resp.json();
             if (resp.ok) {
@@ -831,6 +1095,8 @@
                 document.getElementById("key-label").disabled = true;
                 document.getElementById("key-sub-account").disabled = true;
                 loadData();
+            } else {
+                alert(data.detail || "Failed to generate key");
             }
         } catch (err) {
             console.error(err);
@@ -853,6 +1119,7 @@
         }
     };
 
-    loadData();
+    // Start by loading projects
+    loadProjects();
 </script>
 {% endblock %}

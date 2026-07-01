@@ -3,8 +3,8 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from app.core.database import get_db
-from app.api.deps import get_merchant_by_api_key
-from app.models.merchant import Merchant
+from app.api.deps import get_project_by_api_key
+from app.models.project import Project
 from app.models.plan import Plan
 
 router = APIRouter(prefix="/api/plans", tags=["Plans"])
@@ -31,11 +31,11 @@ class PlanResponse(BaseModel):
 @router.post("", response_model=PlanResponse, status_code=status.HTTP_201_CREATED)
 def create_plan(
     payload: PlanCreateRequest,
-    merchant: Merchant = Depends(get_merchant_by_api_key),
+    project: Project = Depends(get_project_by_api_key),
     db: Session = Depends(get_db)
 ):
     plan = Plan(
-        merchant_id=merchant.id,
+        project_id=project.id,
         name=payload.name,
         amount=payload.amount,
         currency=payload.currency.upper(),
@@ -49,19 +49,19 @@ def create_plan(
 
 @router.get("", response_model=List[PlanResponse])
 def list_plans(
-    merchant: Merchant = Depends(get_merchant_by_api_key),
+    project: Project = Depends(get_project_by_api_key),
     db: Session = Depends(get_db)
 ):
-    plans = db.query(Plan).filter(Plan.merchant_id == merchant.id, Plan.is_active == True).all()
+    plans = db.query(Plan).filter(Plan.project_id == project.id, Plan.is_active == True).all()
     return plans
 
 @router.get("/{plan_id}", response_model=PlanResponse)
 def get_plan(
     plan_id: str,
-    merchant: Merchant = Depends(get_merchant_by_api_key),
+    project: Project = Depends(get_project_by_api_key),
     db: Session = Depends(get_db)
 ):
-    plan = db.query(Plan).filter(Plan.id == plan_id, Plan.merchant_id == merchant.id).first()
+    plan = db.query(Plan).filter(Plan.id == plan_id, Plan.project_id == project.id).first()
     if not plan:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -72,10 +72,10 @@ def get_plan(
 @router.delete("/{plan_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_plan(
     plan_id: str,
-    merchant: Merchant = Depends(get_merchant_by_api_key),
+    project: Project = Depends(get_project_by_api_key),
     db: Session = Depends(get_db)
 ):
-    plan = db.query(Plan).filter(Plan.id == plan_id, Plan.merchant_id == merchant.id).first()
+    plan = db.query(Plan).filter(Plan.id == plan_id, Plan.project_id == project.id).first()
     if not plan:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

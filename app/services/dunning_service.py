@@ -1,7 +1,5 @@
 import asyncio
 from datetime import datetime, timedelta
-import uuid
-import json
 from sqlalchemy.orm import Session
 from app.models.subscription import Subscription
 from app.models.payment import Payment
@@ -10,23 +8,6 @@ from app.core.nomba_client import nomba_client
 from app.services.billing_service import BillingService
 
 class DunningService:
-    @staticmethod
-    def schedule_next_retry(subscription: Subscription) -> None:
-        """Calculate next retry schedule according to escalating delays: 1d, 3d, 7d."""
-        now = datetime.utcnow()
-        subscription.retry_count += 1
-        
-        if subscription.retry_count == 1:
-            subscription.next_retry_at = now + timedelta(days=1)
-        elif subscription.retry_count == 2:
-            subscription.next_retry_at = now + timedelta(days=3)
-        elif subscription.retry_count == 3:
-            subscription.next_retry_at = now + timedelta(days=7)
-        else:
-            # All retries exhausted, suspend subscription
-            subscription.next_retry_at = None
-            BillingService.transition_state(None, subscription, "suspended")
-
     @staticmethod
     async def process_renewal(db: Session, subscription: Subscription) -> bool:
         """Attempt to charge the tokenized card for renewal."""
@@ -42,13 +23,14 @@ class DunningService:
             return False
 
         plan = subscription.plan
+        project = subscription.project
         order_ref = f"cadence_renew_{subscription.id[:8]}_{int(datetime.utcnow().timestamp())}"
         idempotency_key = f"idemp_{subscription.id}_{subscription.retry_count}_{subscription.current_period_end.strftime('%Y%m%d')}"
 
         # Create pending Payment record
         payment = Payment(
             subscription_id=subscription.id,
-            merchant_id=subscription.merchant_id,
+            project_id=subscription.project_id,
             amount=plan.amount,
             currency=plan.currency,
             nomba_order_ref=order_ref,
@@ -62,6 +44,8 @@ class DunningService:
             print(f"[DUNNING] Charging card token for subscription: {subscription.id} (amount: {plan.amount})")
             sub_acc_id = plan.api_key.nomba_sub_account_id if plan.api_key else None
             resp = await nomba_client.charge_tokenized_card(
+                db=db,
+                project=project,
                 token_key=subscription.token_key,
                 order_ref=order_ref,
                 amount=float(plan.amount),
@@ -112,7 +96,7 @@ class DunningService:
         elif subscription.retry_count == 3:
             subscription.next_retry_at = now + timedelta(days=7)
         else:
-            # All retries exhausted
+            # All retries exhausted, suspend subscription
             subscription.next_retry_at = None
             BillingService.transition_state(db, subscription, "suspended")
             

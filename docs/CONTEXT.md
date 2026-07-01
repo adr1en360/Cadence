@@ -15,12 +15,12 @@ Architecture documentation, Nomba API integration notes, and design decisions. T
 ```
 docs/
 ├── CONTEXT.md                  ← this file
-├── architecture.md             ← System overview, component diagram, data flow
+├── developer_flow.md           ← High-level flow, integration guide, dashboard sections
+├── api_surface.md              ← Developer public API surface endpoints reference
 ├── nomba_api.md                ← Nomba API reference (endpoints, auth, webhook format, gotchas)
 ├── nomba_api_llms.md           ← Nomba API LLM documentation index (for AI lookup)
 ├── billing_states.md           ← State machine diagram and transition rules
-├── design_system.md            ← Brand colors, typography, layout tokens
-└── deployment.md               ← Render setup, env vars, Supabase config
+└── design_system.md            ← Brand colors, typography, layout tokens
 ```
 
 ## What Good Output Looks Like

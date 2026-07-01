@@ -11,12 +11,14 @@ class Subscription(Base):
     __tablename__ = "subscriptions"
 
     id = Column(String, primary_key=True, default=generate_uuid)
-    merchant_id = Column(String, ForeignKey("merchants.id"), nullable=False)
+    project_id = Column(String, ForeignKey("projects.id"), nullable=False)
     plan_id = Column(String, ForeignKey("plans.id"), nullable=False)
     customer_email = Column(String, index=True, nullable=False)
     customer_name = Column(String, nullable=True)
     status = Column(String, default="active", nullable=False)  # trialing, active, past_due, suspended, cancelled, expired
     token_key = Column(String, nullable=True)  # tokenized card key from Nomba
+    portal_token = Column(String, nullable=True)
+    portal_token_expires_at = Column(DateTime, nullable=True)
     current_period_start = Column(DateTime, default=datetime.utcnow, nullable=False)
     current_period_end = Column(DateTime, nullable=False)
     trial_end = Column(DateTime, nullable=True)
@@ -26,6 +28,7 @@ class Subscription(Base):
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
+    project = relationship("Project", back_populates="subscriptions")
     plan = relationship("Plan", back_populates="subscriptions")
     payments = relationship("Payment", back_populates="subscription", cascade="all, delete-orphan")
     events = relationship("Event", back_populates="subscription", cascade="all, delete-orphan")

@@ -12,13 +12,14 @@ class Payment(Base):
 
     id = Column(String, primary_key=True, default=generate_uuid)
     subscription_id = Column(String, ForeignKey("subscriptions.id"), nullable=False)
-    merchant_id = Column(String, ForeignKey("merchants.id"), nullable=False)
+    project_id = Column(String, ForeignKey("projects.id"), nullable=False)
     amount = Column(Numeric(10, 2), nullable=False)
     currency = Column(String(3), default="NGN", nullable=False)
     nomba_order_ref = Column(String, unique=True, index=True, nullable=False)
     nomba_transaction_id = Column(String, nullable=True)
-    status = Column(String, default="pending", nullable=False)  # pending, succeeded, failed
+    status = Column(String, default="pending", nullable=False)  # pending, succeeded, failed, refunded
     idempotency_key = Column(String, unique=True, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
+    project = relationship("Project", back_populates="payments")
     subscription = relationship("Subscription", back_populates="payments")

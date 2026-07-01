@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.security import decode_access_token, verify_api_key
 from app.models.merchant import Merchant, APIKey
+from app.models.project import Project
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login", auto_error=False)
 api_key_header = APIKeyHeader(name="Authorization", auto_error=False)
@@ -35,11 +36,11 @@ def get_current_merchant(
         
     return merchant
 
-def get_merchant_by_api_key(
+def get_project_by_api_key(
     api_key: str = Depends(api_key_header),
     db: Session = Depends(get_db)
-) -> Merchant:
-    """Authenticate merchant using Bearer API Key (developer API)."""
+) -> Project:
+    """Authenticate API requests using Bearer API Key and return the associated Project."""
     if not api_key:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -76,4 +77,4 @@ def get_merchant_by_api_key(
             detail="Invalid API Key credentials"
         )
         
-    return db_key.merchant
+    return db_key.project

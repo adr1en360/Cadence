@@ -38,7 +38,7 @@ Cadence solves this by automating:
                         |                   |                    |
                         |                   v                    |
                         |   +--------------------------------+   |
-                        |   |  Dunning Scheduler (Thread)    |   |
+                        |   | Dunning Scheduler (Cron Job)   |   |
                         |   +---------------+----------------+   |
                         +-------------------|--------------------+
                                             | Nomba API (HTTPS)
@@ -49,6 +49,8 @@ Cadence solves this by automating:
 ```
 
 For a detailed look at system architecture and subscription rules, see:
+*   [docs/developer_flow.md](docs/developer_flow.md) — High-Level Flow & Integration Guide
+*   [docs/api_surface.md](docs/api_surface.md) — Public API Endpoints & Developer Reference
 *   [docs/billing_states.md](docs/billing_states.md) — Subscription State Machine & Dunning Rules
 *   [docs/nomba_api.md](docs/nomba_api.md) — Nomba API Integration & Webhook Signatures
 
@@ -113,9 +115,9 @@ Start the local development server:
 ```bash
 uv run uvicorn app.main:app --reload --port 8000
 ```
-FastAPI will start the web app and initialize the background dunning scheduler thread automatically.
+FastAPI starts the web app. The dunning scheduler runs as a separate Render Cron Job process.
 *   **Merchant Dashboard:** Open `http://localhost:8000/dashboard`
-*   **Interactive API Docs:** Open `http://localhost:8000/docs`
+*   **Developer Portal:** Open `http://localhost:8000/developer`
 
 ---
 

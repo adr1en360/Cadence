@@ -1,4 +1,5 @@
 from app.core.database import Base
+from app.models.project import Project
 from app.models.merchant import Merchant, APIKey
 from app.models.plan import Plan
 from app.models.subscription import Subscription

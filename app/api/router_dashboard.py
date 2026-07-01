@@ -2,10 +2,12 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from sqlalchemy import func
+import json
 from typing import List, Optional
 from app.core.database import get_db
 from app.api.deps import get_current_merchant
 from app.models.merchant import Merchant, APIKey
+from app.models.project import Project
 from app.models.plan import Plan
 from app.models.subscription import Subscription
 from app.models.payment import Payment
@@ -31,14 +33,12 @@ def get_merchant_from_cookie(request: Request, db: Session = Depends(get_db)) ->
 # UI Page Routers
 @router.get("/")
 def landing_page(request: Request):
-    # If already logged in, redirect to dashboard
     if request.cookies.get("access_token"):
         return Response(headers={"Location": "/dashboard"}, status_code=302)
     return templates.TemplateResponse(request=request, name="landing.html")
 
 @router.get("/login")
 def login_page(request: Request):
-    # If already logged in, redirect to dashboard
     if request.cookies.get("access_token"):
         return Response(headers={"Location": "/dashboard"}, status_code=302)
     return templates.TemplateResponse(request=request, name="login.html")
@@ -58,24 +58,96 @@ def dashboard_page(request: Request, db: Session = Depends(get_db)):
         
     return templates.TemplateResponse(request=request, name="dashboard.html", context={"merchant": merchant})
 
-# JSON Data API Routers for UI Dashboard
+# JSON Data API Routers for Projects
+@router.get("/api/dashboard/projects")
+def list_projects(
+    merchant: Merchant = Depends(get_current_merchant),
+    db: Session = Depends(get_db)
+):
+    projects = db.query(Project).filter(Project.merchant_id == merchant.id).all()
+    return [
+        {
+            "id": p.id,
+            "name": p.name,
+            "nomba_client_id": p.nomba_client_id,
+            "nomba_account_id": p.nomba_account_id,
+            "nomba_client_secret_configured": p.nomba_client_secret_encrypted is not None,
+            "webhook_url": p.webhook_url,
+            "created_at": p.created_at.isoformat()
+        } for p in projects
+    ]
+
+@router.post("/api/dashboard/projects")
+def create_project(
+    payload: dict,
+    merchant: Merchant = Depends(get_current_merchant),
+    db: Session = Depends(get_db)
+):
+    name = payload.get("name")
+    if not name or not name.strip():
+        raise HTTPException(status_code=400, detail="Project name is required")
+        
+    project = Project(
+        merchant_id=merchant.id,
+        name=name.strip()
+    )
+    db.add(project)
+    db.commit()
+    db.refresh(project)
+    return {
+        "id": project.id,
+        "name": project.name,
+        "created_at": project.created_at.isoformat()
+    }
+
+@router.post("/api/dashboard/projects/{project_id}/settings")
+def update_project_settings(
+    project_id: str,
+    payload: dict,
+    merchant: Merchant = Depends(get_current_merchant),
+    db: Session = Depends(get_db)
+):
+    project = db.query(Project).filter(Project.id == project_id, Project.merchant_id == merchant.id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+        
+    # Update settings
+    if "nomba_client_id" in payload:
+        project.nomba_client_id = payload["nomba_client_id"]
+    if "nomba_client_secret" in payload:
+        project.nomba_client_secret_encrypted = payload["nomba_client_secret"]
+    if "nomba_account_id" in payload:
+        project.nomba_account_id = payload["nomba_account_id"]
+    if "webhook_url" in payload:
+        project.webhook_url = payload["webhook_url"]
+        
+    db.add(project)
+    db.commit()
+    return {"message": "Project settings updated successfully"}
+
+# JSON Data API Routers for UI Dashboard (scoped to Project)
 @router.get("/api/dashboard/stats")
 def get_stats(
+    project_id: str,
     api_key_id: Optional[str] = None,
     merchant: Merchant = Depends(get_current_merchant),
     db: Session = Depends(get_db)
 ):
+    project = db.query(Project).filter(Project.id == project_id, Project.merchant_id == merchant.id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+        
     active_query = db.query(Subscription).filter(
-        Subscription.merchant_id == merchant.id,
+        Subscription.project_id == project.id,
         Subscription.status == "active"
     )
     if api_key_id:
         active_query = active_query.join(Plan).filter(Plan.api_key_id == api_key_id)
     active_count = active_query.count()
     
-    # Calculate MRR (sum of amounts of active subscription plans)
+    # Calculate MRR
     mrr_query = db.query(func.sum(Plan.amount)).join(Subscription).filter(
-        Subscription.merchant_id == merchant.id,
+        Subscription.project_id == project.id,
         Subscription.status == "active"
     )
     if api_key_id:
@@ -83,9 +155,9 @@ def get_stats(
     mrr_result = mrr_query.scalar()
     mrr = float(mrr_result) if mrr_result else 0.0
     
-    # Calculate total processed successful payments
+    # Calculate total processed payments
     total_query = db.query(func.sum(Payment.amount)).filter(
-        Payment.merchant_id == merchant.id,
+        Payment.project_id == project.id,
         Payment.status == "succeeded"
     )
     if api_key_id:
@@ -101,11 +173,16 @@ def get_stats(
 
 @router.get("/api/dashboard/plans")
 def list_dashboard_plans(
+    project_id: str,
     api_key_id: Optional[str] = None,
     merchant: Merchant = Depends(get_current_merchant),
     db: Session = Depends(get_db)
 ):
-    query = db.query(Plan).filter(Plan.merchant_id == merchant.id, Plan.is_active == True)
+    project = db.query(Project).filter(Project.id == project_id, Project.merchant_id == merchant.id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+        
+    query = db.query(Plan).filter(Plan.project_id == project.id, Plan.is_active == True)
     if api_key_id:
         query = query.filter(Plan.api_key_id == api_key_id)
     plans = query.all()
@@ -126,8 +203,13 @@ def create_dashboard_plan(
     merchant: Merchant = Depends(get_current_merchant),
     db: Session = Depends(get_db)
 ):
+    project_id = payload.get("project_id")
+    project = db.query(Project).filter(Project.id == project_id, Project.merchant_id == merchant.id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+        
     plan = Plan(
-        merchant_id=merchant.id,
+        project_id=project.id,
         name=payload["name"],
         amount=payload["amount"],
         interval_days=payload["interval_days"],
@@ -145,7 +227,8 @@ def delete_dashboard_plan(
     merchant: Merchant = Depends(get_current_merchant),
     db: Session = Depends(get_db)
 ):
-    plan = db.query(Plan).filter(Plan.id == plan_id, Plan.merchant_id == merchant.id).first()
+    # Verify project belongs to merchant
+    plan = db.query(Plan).join(Project).filter(Plan.id == plan_id, Project.merchant_id == merchant.id).first()
     if not plan:
         raise HTTPException(status_code=404, detail="Plan not found")
     plan.is_active = False
@@ -155,16 +238,27 @@ def delete_dashboard_plan(
 
 @router.get("/api/dashboard/subscriptions")
 def list_dashboard_subscriptions(
+    project_id: str,
     api_key_id: Optional[str] = None,
     merchant: Merchant = Depends(get_current_merchant),
     db: Session = Depends(get_db)
 ):
-    query = db.query(Subscription).filter(Subscription.merchant_id == merchant.id)
+    project = db.query(Project).filter(Project.id == project_id, Project.merchant_id == merchant.id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+        
+    query = db.query(Subscription).filter(Subscription.project_id == project.id)
     if api_key_id:
         query = query.join(Plan).filter(Plan.api_key_id == api_key_id)
     subs = query.all()
-    return [
-        {
+    
+    data = []
+    for s in subs:
+        # Load all payments and events associated with this subscription
+        payments = db.query(Payment).filter(Payment.subscription_id == s.id).order_by(Payment.created_at.desc()).all()
+        events = db.query(Event).filter(Event.subscription_id == s.id).order_by(Event.created_at.desc()).all()
+        
+        data.append({
             "id": s.id,
             "customer_name": s.customer_name,
             "customer_email": s.customer_email,
@@ -174,25 +268,48 @@ def list_dashboard_subscriptions(
             "plan_currency": s.plan.currency,
             "api_key_label": s.plan.api_key.label if s.plan.api_key else "Direct / No Key",
             "period_start": s.current_period_start.isoformat(),
-            "period_end": s.current_period_end.isoformat()
-        } for s in subs
-    ]
+            "period_end": s.current_period_end.isoformat(),
+            "payments": [
+                {
+                    "id": p.id,
+                    "amount": float(p.amount),
+                    "currency": p.currency,
+                    "status": p.status,
+                    "nomba_transaction_id": p.nomba_transaction_id or "",
+                    "created_at": p.created_at.isoformat()
+                } for p in payments
+            ],
+            "events": [
+                {
+                    "id": e.id,
+                    "event_type": e.event_type,
+                    "created_at": e.created_at.isoformat(),
+                    "data": json.loads(e.data_json) if e.data_json else {}
+                } for e in events
+            ]
+        })
+    return data
 
 @router.get("/api/dashboard/wallet-balance")
 async def get_wallet_balance_route(
+    project_id: str,
     api_key_id: Optional[str] = None,
     merchant: Merchant = Depends(get_current_merchant),
     db: Session = Depends(get_db)
 ):
+    project = db.query(Project).filter(Project.id == project_id, Project.merchant_id == merchant.id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+        
     sub_account_id = None
     if api_key_id:
-        api_key = db.query(APIKey).filter(APIKey.id == api_key_id, APIKey.merchant_id == merchant.id).first()
+        api_key = db.query(APIKey).filter(APIKey.id == api_key_id, APIKey.project_id == project.id).first()
         if api_key:
             sub_account_id = api_key.nomba_sub_account_id
             
     from app.core.nomba_client import nomba_client
     try:
-        balance_data = await nomba_client.get_wallet_balance(sub_account_id=sub_account_id)
+        balance_data = await nomba_client.get_wallet_balance(db=db, project=project, sub_account_id=sub_account_id)
         return {
             "amount": float(balance_data["amount"]),
             "currency": balance_data["currency"]
@@ -203,3 +320,79 @@ async def get_wallet_balance_route(
             "currency": "NGN",
             "error": str(e)
         }
+
+@router.post("/api/dashboard/subscriptions/{sub_id}/portal-link")
+def dashboard_generate_portal_link(
+    sub_id: str,
+    merchant: Merchant = Depends(get_current_merchant),
+    db: Session = Depends(get_db)
+):
+    sub = db.query(Subscription).join(Project).filter(Subscription.id == sub_id, Project.merchant_id == merchant.id).first()
+    if not sub:
+        raise HTTPException(status_code=404, detail="Subscription not found")
+        
+    import secrets
+    from datetime import datetime, timedelta
+    token = secrets.token_urlsafe(32)
+    sub.portal_token = token
+    sub.portal_token_expires_at = datetime.utcnow() + timedelta(hours=2)
+    db.add(sub)
+    db.commit()
+    
+    portal_url = f"http://localhost:8000/portal/{sub.id}?token={token}"
+    return {
+        "portal_url": portal_url,
+        "expires_at": sub.portal_token_expires_at.isoformat()
+    }
+
+@router.post("/api/dashboard/payments/{payment_id}/refund")
+async def dashboard_refund_payment(
+    payment_id: str,
+    merchant: Merchant = Depends(get_current_merchant),
+    db: Session = Depends(get_db)
+):
+    payment = db.query(Payment).join(Project).filter(Payment.id == payment_id, Project.merchant_id == merchant.id).first()
+    if not payment:
+        raise HTTPException(status_code=404, detail="Payment record not found")
+        
+    if payment.status != "succeeded":
+        raise HTTPException(status_code=400, detail="Only succeeded payments can be refunded")
+        
+    if not payment.nomba_transaction_id:
+        raise HTTPException(status_code=400, detail="Payment lacks a transaction ID")
+        
+    try:
+        from app.core.nomba_client import nomba_client
+        resp = await nomba_client.refund_transaction(
+            db=db,
+            project=payment.project,
+            transaction_id=payment.nomba_transaction_id,
+            amount=float(payment.amount)
+        )
+        
+        code = resp.get("code")
+        status_val = resp.get("status")
+        
+        if code == "00" or status_val == "SUCCESS" or resp.get("data", {}).get("status") == "SUCCESS":
+            payment.status = "refunded"
+            db.add(payment)
+            
+            # Log refund event
+            event = Event(
+                project_id=payment.project_id,
+                subscription_id=payment.subscription_id,
+                event_type="payment.refunded",
+                data_json=json.dumps({
+                    "payment_id": payment.id,
+                    "nomba_transaction_id": payment.nomba_transaction_id,
+                    "amount": float(payment.amount),
+                    "timestamp": datetime.utcnow().isoformat()
+                })
+            )
+            db.add(event)
+            db.commit()
+            return {"status": "refunded"}
+        else:
+            raise RuntimeError(f"Nomba refund rejected: {resp}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

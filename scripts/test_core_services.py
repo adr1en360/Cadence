@@ -1,10 +1,14 @@
-import asyncio
+import sys
 import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+import asyncio
 from dotenv import load_dotenv
 from sqlalchemy.orm import Session
 from app.core.database import SessionLocal, Base, engine
 from app.core.nomba_client import nomba_client
 from app.core.security import hash_password, generate_api_key_prefix_and_secret
+from app.models.project import Project
 from app.models.merchant import Merchant, APIKey
 from app.models.plan import Plan
 from app.models.subscription import Subscription
@@ -20,7 +24,6 @@ async def test_integration():
     print("[*] Creating database session...")
     db = SessionLocal()
     try:
-        # Check if tables are present by querying a table
         merchants_count = db.query(Merchant).count()
         print(f"[OK] Database connection verified. Existing merchants in DB: {merchants_count}")
     except Exception as e:
@@ -28,8 +31,8 @@ async def test_integration():
         db.close()
         return False
 
-    # 2. Test Merchant & Plan Setup
-    print("[*] Creating test merchant and plan records in local database...")
+    # 2. Test Merchant, Project & Plan Setup
+    print("[*] Creating test merchant, project, and plan records in local database...")
     try:
         # Create a mock merchant
         test_email = f"merchant_{int(asyncio.get_event_loop().time())}@test.com"
@@ -38,19 +41,29 @@ async def test_integration():
         merchant = Merchant(
             name="Test Cadence Merchant",
             email=test_email,
-            password_hash=hash_password("securepassword123"),
-            nomba_client_id=os.getenv("NOMBA_CLIENT_ID"),
-            nomba_client_secret_encrypted=os.getenv("NOMBA_CLIENT_SECRET"),
-            nomba_account_id=os.getenv("NOMBA_ACCOUNT_ID")
+            password_hash=hash_password("securepassword123")
         )
         db.add(merchant)
         db.commit()
         db.refresh(merchant)
         print(f"[OK] Created test merchant: {merchant.name} (ID: {merchant.id})")
 
+        # Create project
+        project = Project(
+            merchant_id=merchant.id,
+            name="SchoolPadi Test Project",
+            nomba_client_id=os.getenv("NOMBA_CLIENT_ID"),
+            nomba_client_secret_encrypted=os.getenv("NOMBA_CLIENT_SECRET"),
+            nomba_account_id=os.getenv("NOMBA_ACCOUNT_ID")
+        )
+        db.add(project)
+        db.commit()
+        db.refresh(project)
+        print(f"[OK] Created test project: {project.name} (ID: {project.id})")
+
         # Create api key record
         api_key = APIKey(
-            merchant_id=merchant.id,
+            project_id=project.id,
             key_hash=hashed_key,
             key_prefix=prefix,
             label="Default Test Key"
@@ -59,7 +72,7 @@ async def test_integration():
         
         # Create a test plan (e.g., Monthly Plan at ₦2,000)
         plan = Plan(
-            merchant_id=merchant.id,
+            project_id=project.id,
             name="Pro Monthly Subscription",
             amount=2000.00,
             currency="NGN",
@@ -84,7 +97,7 @@ async def test_integration():
         callback_url = "https://localhost:8000/webhook/nomba"
         subscription, checkout_link = await BillingService.create_subscription(
             db=db,
-            merchant=merchant,
+            project=project,
             plan=plan,
             customer_email="customer@schoolpadi.ng",
             customer_name="Emeka Eze",
@@ -118,7 +131,7 @@ async def test_integration():
     # Clean up test records
     print("[*] Cleaning up test records from local DB...")
     try:
-        # Cascade will delete keys, subscriptions, payments, and events
+        # Cascade will delete projects, keys, subscriptions, payments, and events
         db.delete(merchant)
         db.commit()
         print("[OK] Test database records cleaned up successfully.")

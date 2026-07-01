@@ -11,7 +11,7 @@ class Plan(Base):
     __tablename__ = "plans"
 
     id = Column(String, primary_key=True, default=generate_uuid)
-    merchant_id = Column(String, ForeignKey("merchants.id"), nullable=False)
+    project_id = Column(String, ForeignKey("projects.id"), nullable=False)
     name = Column(String, nullable=False)
     amount = Column(Numeric(10, 2), nullable=False)
     currency = Column(String(3), default="NGN", nullable=False)
@@ -21,6 +21,6 @@ class Plan(Base):
     api_key_id = Column(String, ForeignKey("api_keys.id"), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
-    merchant = relationship("Merchant", back_populates="plans")
+    project = relationship("Project", back_populates="plans")
     api_key = relationship("APIKey", back_populates="plans")
     subscriptions = relationship("Subscription", back_populates="plan", cascade="all, delete-orphan")

@@ -197,6 +197,7 @@ Then: `HMAC-SHA256(secret_key, signing_string)` → Base64 encode → compare wi
   "requestId": "550e8400-e29b-41d4-a716-446655440000",
   "data": {
     "merchant": { "userId": "<accountId>" },
+    "tokenKey": "e890bd1a9f0d",
     "transaction": {
       "fee": 0.28,
       "type": "online_checkout",
@@ -216,8 +217,8 @@ Then: `HMAC-SHA256(secret_key, signing_string)` → Base64 encode → compare wi
 ```
 
 ### Where tokenKey comes from
-1. **Primary:** `GET /v1/checkout/tokenized-card-data?customerEmail=<email>` after successful tokenized payment
-2. **Secondary:** May appear in the `payment_success` webhook payload (field: `tokenKey`)
+1. **Primary:** `payment_success` webhook payload at `data.tokenKey` (see sample above). The webhook fires synchronously in sandbox — capture `tokenKey` here to avoid an extra API call.
+2. **Fallback:** `GET /v1/checkout/tokenized-card-data?customerEmail=<email>` — poll only if `tokenKey` is missing from the webhook payload.
 
 ---
 
@@ -250,4 +251,4 @@ Then: `HMAC-SHA256(secret_key, signing_string)` → Base64 encode → compare wi
 5. **Orders expire in 48 hours** in sandbox (Redis-backed)
 6. **Transaction ID format:** `WEB-ONLINE_C-{first6charsOfAccountId}-{UUID}`
 
-_Last updated: 2026-06-30_
+_Last updated: 2026-07-01_

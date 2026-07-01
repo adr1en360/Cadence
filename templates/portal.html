@@ -301,12 +301,15 @@
 <script>
     const subId = "{{ subscription.id }}";
 
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token') || '';
+
     // Update Payment Method (card tokenization)
     document.getElementById("update-card-btn")?.addEventListener("click", async () => {
         if (!confirm("We will direct you to Nomba's checkout to authorize your card. A temporary authorization charge may apply. Proceed?")) return;
         
         try {
-            const resp = await fetch(`/api/portal/${subId}/update-card`, {
+            const resp = await fetch(`/api/portal/${subId}/update-card?token=${token}`, {
                 method: "POST"
             });
             const data = await resp.json();
@@ -320,13 +323,13 @@
             alert("An error occurred");
         }
     });
-
+ 
     // Cancel Subscription
     document.getElementById("cancel-sub-btn")?.addEventListener("click", async () => {
         if (!confirm("Are you sure you want to cancel your subscription immediately? This action is permanent.")) return;
         
         try {
-            const resp = await fetch(`/api/portal/${subId}/cancel`, {
+            const resp = await fetch(`/api/portal/${subId}/cancel?token=${token}`, {
                 method: "POST"
             });
             const data = await resp.json();

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.security import verify_nomba_webhook
-from app.models.merchant import Merchant
+from app.models.project import Project
 from app.services.billing_service import BillingService
 
 router = APIRouter(prefix="/webhooks", tags=["Webhooks"])
@@ -29,23 +29,22 @@ async def handle_nomba_webhook(request: Request, db: Session = Depends(get_db)):
             detail="Missing merchant userId in payload"
         )
         
-    # 3. Find the Merchant owning this account ID
-    merchant = db.query(Merchant).filter(Merchant.nomba_account_id == user_id).first()
-    if not merchant:
-        # Fallback: check if we have a merchant configured with this ID in settings
+    # 3. Find the Project owning this account ID
+    project = db.query(Project).filter(Project.nomba_account_id == user_id).first()
+    if not project:
+        # Fallback: check if we have a project configured with this ID in default settings
         from app.core.config import settings
         if settings.NOMBA_ACCOUNT_ID == user_id:
-            # Query by default config email or first merchant
-            merchant = db.query(Merchant).first()
+            project = db.query(Project).first()
             
-    if not merchant:
+    if not project:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Merchant not registered in Cadence"
+            detail="Project owning this Nomba account not found in Cadence"
         )
         
     # Use the decrypted/stored client secret as the HMAC key
-    secret_key = merchant.nomba_client_secret_encrypted or ""
+    secret_key = project.nomba_client_secret_encrypted or ""
     
     # 4. Verify signature
     is_valid = verify_nomba_webhook(payload, headers, secret_key)
@@ -62,7 +61,7 @@ async def handle_nomba_webhook(request: Request, db: Session = Depends(get_db)):
     transaction = data.get("transaction", {})
     transaction_id = transaction.get("transactionId")
     
-    # Nomba token key usually resides under data.tokenKey or in data.paymentMethod details
+    # Nomba token key resides under data.tokenKey or in webhook payload
     token_key = data.get("tokenKey")
     
     if event_type == "payment_success" and order_ref:

@@ -15,22 +15,22 @@ The core Cadence application. Everything that runs in the FastAPI process lives 
 ```
 app/
 ├── __init__.py
-├── main.py                     ← FastAPI app factory, lifespan (starts scheduler)
+├── main.py                     ← FastAPI app factory & routers configuration
 ├── api/
 │   ├── __init__.py
 │   ├── router_auth.py          ← Merchant auth (login, API key generation)
 │   ├── router_plans.py         ← CRUD subscription plans
 │   ├── router_subscriptions.py ← Create/cancel/list subscriptions
-│   ├── router_webhooks.py      ← Inbound Nomba webhooks + outbound config
+│   ├── router_webhooks.py      ← Inbound Nomba webhooks processing
 │   ├── router_dashboard.py     ← Merchant dashboard pages (Jinja2)
-│   ├── router_portal.py        ← Subscriber self-service portal pages
+│   ├── router_portal.py        ← Subscriber self-service portal endpoints & page
 │   └── deps.py                 ← Shared dependencies (DB session, current merchant)
 ├── core/
 │   ├── __init__.py
 │   ├── config.py               ← Settings via pydantic-settings (env vars)
 │   ├── security.py             ← JWT, API key hashing, HMAC verification
-│   ├── nomba_client.py         ← Environment-aware Nomba API client
-│   └── token_manager.py        ← OAuth2 token cache + proactive refresh
+│   ├── nomba_client.py         ← Environment-aware Nomba API client & OAuth token cache
+│   └── database.py             ← SQLAlchemy database connection & session setup
 ├── models/
 │   ├── __init__.py
 │   ├── merchant.py             ← Merchant account + API keys
@@ -41,22 +41,24 @@ app/
 ├── services/
 │   ├── __init__.py
 │   ├── billing_service.py      ← Create subscription, process payment outcomes
-│   ├── dunning_service.py      ← Retry scheduler logic (1d → 3d → 7d escalation)
-│   ├── webhook_service.py      ← Inbound Nomba webhook processing + outbound dispatch
-│   └── portal_service.py       ← Subscriber portal logic (billing history, cancel, update card)
+│   └── dunning_service.py      ← Retry scheduler logic (1d → 3d → 7d escalation)
 ├── templates/
 │   ├── base.html               ← Shared layout (TailwindCSS CDN, dark theme)
-│   ├── dashboard/
-│   │   ├── overview.html       ← MRR, state counts, recent events
-│   │   ├── plans.html          ← Plan management
-│   │   ├── subscription.html   ← Single subscription detail + event log
-│   │   └── settings.html       ← Webhook URL, dunning config, API keys
-│   └── portal/
-│       ├── billing.html        ← Subscriber billing history
-│       ├── manage.html         ← Update payment method, cancel
-│       └── success.html        ← Post-action confirmation
+│   ├── landing.html            ← Landing & features overview page
+│   ├── login.html              ← Merchant dashboard login page
+│   ├── register.html           ← Merchant registration & onboarding page
+│   ├── dashboard.html          ← Integrated merchant operations dashboard
+│   ├── portal.html             ← Integrated customer billing self-service portal
+│   └── developer/              ← Developer portal documentation templates
+│       ├── base.html
+│       ├── introduction.html
+│       ├── authentication.html
+│       ├── plans.html
+│       ├── subscriptions.html
+│       ├── webhooks.html
+│       └── errors.html
 └── static/
-    └── styles.css              ← Custom overrides (minimal, TailwindCSS does the heavy lifting)
+    └── styles.css              ← Custom CSS overrides
 ```
 
 ## What Good Output Looks Like
