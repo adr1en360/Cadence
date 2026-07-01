@@ -11,6 +11,7 @@ from app.models.project import Project
 from app.models.plan import Plan
 from app.models.subscription import Subscription
 from app.models.payment import Payment
+from app.models.event import Event
 
 router = APIRouter(tags=["Merchant Dashboard"])
 templates = Jinja2Templates(directory="templates")

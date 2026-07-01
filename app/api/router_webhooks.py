@@ -81,3 +81,41 @@ async def handle_nomba_webhook(request: Request, db: Session = Depends(get_db)):
         print(f"[WEBHOOK] Successfully processed payment_failed for ref: {order_ref}")
         
     return {"status": "received"}
+
+@router.post("/test-success")
+def trigger_test_success_webhook(payload: dict, db: Session = Depends(get_db)):
+    """Sandbox endpoint to simulate a successful payment webhook for a given order reference."""
+    order_ref = payload.get("order_ref")
+    transaction_id = payload.get("transaction_id", "test_txn_12345")
+    token_key = payload.get("token_key", "test_token_key_abcde")
+    
+    if not order_ref:
+        raise HTTPException(status_code=400, detail="order_ref is required")
+        
+    try:
+        BillingService.process_payment_success(
+            db=db,
+            nomba_order_ref=order_ref,
+            transaction_id=transaction_id,
+            token_key=token_key
+        )
+        return {"status": "success", "message": "Simulation success webhook triggered successfully"}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.post("/test-failed")
+def trigger_test_failed_webhook(payload: dict, db: Session = Depends(get_db)):
+    """Sandbox endpoint to simulate a failed payment webhook for a given order reference."""
+    order_ref = payload.get("order_ref")
+    
+    if not order_ref:
+        raise HTTPException(status_code=400, detail="order_ref is required")
+        
+    try:
+        BillingService.process_payment_failure(
+            db=db,
+            nomba_order_ref=order_ref
+        )
+        return {"status": "success", "message": "Simulation failed webhook triggered successfully"}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))

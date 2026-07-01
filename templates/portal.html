@@ -256,7 +256,7 @@
             </div>
             <div class="detail-row">
                 <span class="detail-label">Amount / Cycle</span>
-                <span class="detail-value" style="color: var(--primary);">₦{{ subscription.plan_amount.toLocaleString('en-US', {minimumFractionDigits: 2}) }} / {{ subscription.plan_interval }} Days</span>
+                <span class="detail-value" style="color: var(--primary);">₦{{ "{:,.2f}".format(subscription.plan_amount) }} / {{ subscription.plan_interval }} Days</span>
             </div>
             <div class="detail-row">
                 <span class="detail-label">Billing Start Date</span>
