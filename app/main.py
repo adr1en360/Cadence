@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from app.core.database import get_db
-from app.api import router_auth, router_plans, router_subscriptions, router_webhooks, router_dashboard, router_portal
+from app.api import router_auth, router_plans, router_subscriptions, router_webhooks, router_dashboard, router_portal, developer_routes
 
 app = FastAPI(
     title="Cadence Subscription Engine",
@@ -19,6 +19,7 @@ app.include_router(router_webhooks.router)
 # UI/Template Routers
 app.include_router(router_dashboard.router)
 app.include_router(router_portal.router)
+app.include_router(developer_routes.router)
 
 @app.get("/health")
 def health_check(db: Session = Depends(get_db)):

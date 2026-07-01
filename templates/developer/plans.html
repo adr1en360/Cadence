@@ -1,0 +1,95 @@
+{% extends "developer/base.html" %}
+
+{% block title %}Plans API - Cadence Docs{% endblock %}
+
+{% block toc %}
+  <a href="#overview" class="block text-[#6B6B6B] hover:text-[#F26419] transition-colors py-1">Overview</a>
+  <a href="#create" class="block text-[#6B6B6B] hover:text-[#F26419] transition-colors py-1">Create a Plan</a>
+  <a href="#list" class="block text-[#6B6B6B] hover:text-[#F26419] transition-colors py-1">List Plans</a>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+  <div id="overview" class="space-y-4">
+    <div class="text-xs font-semibold text-[#F26419] uppercase tracking-wider">API Reference</div>
+    <h1 class="font-title text-4xl font-bold tracking-tight text-[#0D0D0D]">Plans API</h1>
+    <p class="text-[#6B6B6B] leading-relaxed">
+      Plans represent recurring billing schedules (such as monthly subscriptions, weekly services, or custom intervals) that you define and expose to your customers.
+    </p>
+  </div>
+
+  <!-- Create Plan Section -->
+  <div id="create" class="space-y-6 pt-6 border-t border-gray-200/60">
+    <h2 class="font-title text-2xl font-semibold tracking-tight">Create a Plan</h2>
+    <div class="inline-flex items-center gap-2 font-mono text-sm">
+      <span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-bold">POST</span>
+      <span class="text-[#0D0D0D] font-semibold">/api/plans</span>
+    </div>
+    <p class="text-[#6B6B6B]">
+      Define a new billing package. The interval is defined explicitly in days (e.g., <code>30</code> for standard monthly).
+    </p>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Request JSON -->
+      <div class="rounded-xl overflow-hidden bg-[#1A1A1A] border border-[#1A1A1A] shadow-md">
+        <div class="flex items-center justify-between px-4 py-2 bg-[#0D0D0D]/40 border-b border-solid border-[#1A1A1A] text-xs text-[#6B6B6B] font-mono">
+          <span>Request Body (JSON)</span>
+        </div>
+        <div class="p-4 font-mono text-xs text-[#F7F7F5] overflow-x-auto whitespace-pre">{
+  "name": "Standard Monthly",
+  "amount": 2000.00,
+  "currency": "NGN",
+  "interval_days": 30,
+  "trial_days": 0
+}</div>
+      </div>
+
+      <!-- Response JSON -->
+      <div class="rounded-xl overflow-hidden bg-[#1A1A1A] border border-[#1A1A1A] shadow-md">
+        <div class="flex items-center justify-between px-4 py-2 bg-[#0D0D0D]/40 border-b border-solid border-[#1A1A1A] text-xs text-[#6B6B6B] font-mono">
+          <span>Response JSON (201 Created)</span>
+        </div>
+        <div class="p-4 font-mono text-xs text-[#F7F7F5] overflow-x-auto whitespace-pre">{
+  "id": "e9c0b2cd-9e81-4d32-bc51-0a12e34f5678",
+  "name": "Standard Monthly",
+  "amount": 2000.00,
+  "currency": "NGN",
+  "interval_days": 30,
+  "trial_days": 0,
+  "is_active": true
+}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- List Plans Section -->
+  <div id="list" class="space-y-6 pt-6 border-t border-gray-200/60">
+    <h2 class="font-title text-2xl font-semibold tracking-tight">List Active Plans</h2>
+    <div class="inline-flex items-center gap-2 font-mono text-sm">
+      <span class="bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded font-bold">GET</span>
+      <span class="text-[#0D0D0D] font-semibold">/api/plans</span>
+    </div>
+    <p class="text-[#6B6B6B]">
+      Returns an array of all active plans configured on your account.
+    </p>
+
+    <!-- Response JSON -->
+    <div class="rounded-xl overflow-hidden bg-[#1A1A1A] border border-[#1A1A1A] shadow-md max-w-2xl">
+      <div class="flex items-center justify-between px-4 py-2 bg-[#0D0D0D]/40 border-b border-solid border-[#1A1A1A] text-xs text-[#6B6B6B] font-mono">
+        <span>Response JSON (200 OK)</span>
+      </div>
+      <div class="p-4 font-mono text-xs text-[#F7F7F5] overflow-x-auto whitespace-pre">[
+  {
+    "id": "e9c0b2cd-9e81-4d32-bc51-0a12e34f5678",
+    "name": "Standard Monthly",
+    "amount": 2000.00,
+    "currency": "NGN",
+    "interval_days": 30,
+    "trial_days": 0,
+    "is_active": true
+  }
+]</div>
+    </div>
+  </div>
+</div>
+{% endblock %}

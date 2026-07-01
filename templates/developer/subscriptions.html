@@ -1,0 +1,121 @@
+{% extends "developer/base.html" %}
+
+{% block title %}Subscriptions API - Cadence Docs{% endblock %}
+
+{% block toc %}
+  <a href="#overview" class="block text-[#6B6B6B] hover:text-[#F26419] transition-colors py-1">Overview</a>
+  <a href="#create" class="block text-[#6B6B6B] hover:text-[#F26419] transition-colors py-1">Enroll Subscriber</a>
+  <a href="#get" class="block text-[#6B6B6B] hover:text-[#F26419] transition-colors py-1">Get Details</a>
+  <a href="#cancel" class="block text-[#6B6B6B] hover:text-[#F26419] transition-colors py-1">Cancel Subscription</a>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+  <div id="overview" class="space-y-4">
+    <div class="text-xs font-semibold text-[#F26419] uppercase tracking-wider">API Reference</div>
+    <h1 class="font-title text-4xl font-bold tracking-tight text-[#0D0D0D]">Subscriptions API</h1>
+    <p class="text-[#6B6B6B] leading-relaxed">
+      Subscriptions manage the billing relationship between a customer and a plan. They transition through status states as payments are processed or fail.
+    </p>
+  </div>
+
+  <!-- Create Subscription Section -->
+  <div id="create" class="space-y-6 pt-6 border-t border-gray-200/60">
+    <h2 class="font-title text-2xl font-semibold tracking-tight">Enroll a Subscriber</h2>
+    <div class="inline-flex items-center gap-2 font-mono text-sm">
+      <span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-bold">POST</span>
+      <span class="text-[#0D0D0D] font-semibold">/api/subscriptions</span>
+    </div>
+    <p class="text-[#6B6B6B]">
+      Initiates a new subscription enrollment. Generates and returns a <code>checkout_link</code> (hosted by Nomba) to collect the subscriber's payment card.
+    </p>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Request JSON -->
+      <div class="rounded-xl overflow-hidden bg-[#1A1A1A] border border-[#1A1A1A] shadow-md">
+        <div class="flex items-center justify-between px-4 py-2 bg-[#0D0D0D]/40 border-b border-solid border-[#1A1A1A] text-xs text-[#6B6B6B] font-mono">
+          <span>Request Body (JSON)</span>
+        </div>
+        <div class="p-4 font-mono text-xs text-[#F7F7F5] overflow-x-auto whitespace-pre">{
+  "plan_id": "e9c0b2cd-9e81-4d32-bc51-0a12e34f5678",
+  "customer_email": "customer@example.com",
+  "customer_name": "Emeka Eze",
+  "callback_url": "https://yoursite.com/signup-complete"
+}</div>
+      </div>
+
+      <!-- Response JSON -->
+      <div class="rounded-xl overflow-hidden bg-[#1A1A1A] border border-[#1A1A1A] shadow-md">
+        <div class="flex items-center justify-between px-4 py-2 bg-[#0D0D0D]/40 border-b border-solid border-[#1A1A1A] text-xs text-[#6B6B6B] font-mono">
+          <span>Response JSON (201 Created)</span>
+        </div>
+        <div class="p-4 font-mono text-xs text-[#F7F7F5] overflow-x-auto whitespace-pre">{
+  "id": "sub_48f61c20-7dbe-4...",
+  "plan_id": "e9c0b2cd-9e81-4d32-bc51-0a12e34f5678",
+  "customer_email": "customer@example.com",
+  "customer_name": "Emeka Eze",
+  "status": "active",
+  "current_period_start": "2026-07-01T12:00:00Z",
+  "current_period_end": "2026-07-31T12:00:00Z",
+  "checkout_link": "https://pay.nomba.com/sandbox/QMojVVI..."
+}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Get Subscription Details -->
+  <div id="get" class="space-y-6 pt-6 border-t border-gray-200/60">
+    <h2 class="font-title text-2xl font-semibold tracking-tight">Get Subscription Details</h2>
+    <div class="inline-flex items-center gap-2 font-mono text-sm">
+      <span class="bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded font-bold">GET</span>
+      <span class="text-[#0D0D0D] font-semibold">/api/subscriptions/{subscription_id}</span>
+    </div>
+    <p class="text-[#6B6B6B]">
+      Look up a subscription's current state, tokenized card keys, and scheduled retries.
+    </p>
+
+    <!-- Response JSON -->
+    <div class="rounded-xl overflow-hidden bg-[#1A1A1A] border border-[#1A1A1A] shadow-md max-w-2xl">
+      <div class="flex items-center justify-between px-4 py-2 bg-[#0D0D0D]/40 border-b border-solid border-[#1A1A1A] text-xs text-[#6B6B6B] font-mono">
+        <span>Response JSON (200 OK)</span>
+      </div>
+      <div class="p-4 font-mono text-xs text-[#F7F7F5] overflow-x-auto whitespace-pre">{
+  "id": "sub_48f61c20-7dbe-4...",
+  "plan_id": "e9c0b2cd-9e81-4...",
+  "customer_email": "customer@example.com",
+  "customer_name": "Emeka Eze",
+  "status": "active",
+  "current_period_start": "2026-07-01T12:00:00Z",
+  "current_period_end": "2026-07-31T12:00:00Z",
+  "token_key": "token_key_abc123xyz",
+  "retry_count": 0,
+  "next_retry_at": null,
+  "cancelled_at": null
+}</div>
+    </div>
+  </div>
+
+  <!-- Cancel Subscription -->
+  <div id="cancel" class="space-y-6 pt-6 border-t border-gray-200/60">
+    <h2 class="font-title text-2xl font-semibold tracking-tight">Cancel Subscription</h2>
+    <div class="inline-flex items-center gap-2 font-mono text-sm">
+      <span class="bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded font-bold">POST</span>
+      <span class="text-[#0D0D0D] font-semibold">/api/subscriptions/{subscription_id}/cancel</span>
+    </div>
+    <p class="text-[#6B6B6B]">
+      Immediately terminates a subscription and transitions status to <code>cancelled</code>.
+    </p>
+
+    <!-- Response JSON -->
+    <div class="rounded-xl overflow-hidden bg-[#1A1A1A] border border-[#1A1A1A] shadow-md max-w-2xl">
+      <div class="flex items-center justify-between px-4 py-2 bg-[#0D0D0D]/40 border-b border-solid border-[#1A1A1A] text-xs text-[#6B6B6B] font-mono">
+        <span>Response JSON (200 OK)</span>
+      </div>
+      <div class="p-4 font-mono text-xs text-[#F7F7F5] overflow-x-auto whitespace-pre">{
+  "message": "Subscription cancelled successfully",
+  "status": "cancelled"
+}</div>
+    </div>
+  </div>
+</div>
+{% endblock %}

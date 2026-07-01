@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Developer Documentation - Cadence{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            title: ['Outfit', 'sans-serif'],
+            mono: ['"Fira Code"', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Styling custom scrollbars for the sidebar */
+    ::-webkit-scrollbar {
+      width: 4px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0D0D0D;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1A1A1A;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #F26419;
+    }
+  </style>
+</head>
+<body class="bg-[#F7F7F5] text-[#0D0D0D] font-sans antialiased min-h-screen">
+
+  <div class="flex min-h-screen">
+    <!-- Left sidebar: fixed, scrollable independently -->
+    <aside class="w-64 fixed inset-y-0 left-0 bg-[#0D0D0D] border-r border-[#1A1A1A] z-10 overflow-y-auto">
+      {% include "developer/partials/sidebar.html" %}
+    </aside>
+
+    <!-- Main Content Area (offset left by 64px to push past the sidebar) -->
+    <div class="ml-64 flex-1 flex flex-col md:flex-row min-h-screen">
+      <!-- Main Content -->
+      <main class="flex-1 max-w-4xl px-8 lg:px-16 py-12">
+        {% block content %}{% endblock %}
+      </main>
+
+      <!-- Right Table of Contents Sidebar -->
+      <aside class="w-64 hidden xl:block shrink-0 border-l border-solid border-gray-200/50 py-12 px-6">
+        <div class="sticky top-12">
+          <h5 class="text-xs font-semibold uppercase tracking-wider text-[#6B6B6B] mb-4">On this page</h5>
+          <nav class="space-y-2 text-xs">
+            {% block toc %}{% endblock %}
+          </nav>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+</body>
+</html>

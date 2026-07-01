@@ -19,6 +19,7 @@ docs/
 ├── nomba_api.md                ← Nomba API reference (endpoints, auth, webhook format, gotchas)
 ├── nomba_api_llms.md           ← Nomba API LLM documentation index (for AI lookup)
 ├── billing_states.md           ← State machine diagram and transition rules
+├── design_system.md            ← Brand colors, typography, layout tokens
 └── deployment.md               ← Render setup, env vars, Supabase config
 ```
 
