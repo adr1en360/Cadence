@@ -29,6 +29,13 @@ def get_merchant_from_cookie(request: Request, db: Session = Depends(get_db)) ->
     return merchant
 
 # UI Page Routers
+@router.get("/")
+def landing_page(request: Request):
+    # If already logged in, redirect to dashboard
+    if request.cookies.get("access_token"):
+        return Response(headers={"Location": "/dashboard"}, status_code=302)
+    return templates.TemplateResponse(request=request, name="landing.html")
+
 @router.get("/login")
 def login_page(request: Request):
     # If already logged in, redirect to dashboard

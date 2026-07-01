@@ -9,17 +9,17 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-dark: #090a0f;
-            --bg-card: rgba(17, 19, 31, 0.65);
+            --bg-dark: #0D0D0D;
+            --bg-card: rgba(26, 26, 26, 0.7);
             --border-color: rgba(255, 255, 255, 0.08);
-            --text-primary: #f3f4f6;
-            --text-secondary: #9ca3af;
-            --primary: #6366f1;
-            --primary-hover: #4f46e5;
+            --text-primary: #F7F7F5;
+            --text-secondary: #6B6B6B;
+            --primary: #F26419;
+            --primary-hover: #C94E0F;
             --success: #10b981;
             --warning: #f59e0b;
             --danger: #ef4444;
-            --glow-color: rgba(99, 102, 241, 0.15);
+            --glow-color: rgba(242, 100, 25, 0.15);
             --font-main: 'Plus Jakarta Sans', sans-serif;
             --font-title: 'Outfit', sans-serif;
         }
@@ -39,7 +39,7 @@
             flex-direction: column;
             overflow-x: hidden;
             background-image: 
-                radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 10% 20%, rgba(242, 100, 25, 0.08) 0%, transparent 40%),
                 radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.05) 0%, transparent 40%);
         }
 
@@ -83,7 +83,7 @@
         }
 
         .logo span {
-            background: linear-gradient(135deg, var(--primary), #a855f7);
+            background: linear-gradient(135deg, var(--primary), var(--primary-hover));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
@@ -201,8 +201,8 @@
                     <path d="M2 17L12 22L22 17M2 12L12 17L22 12" stroke="url(#logo-grad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     <defs>
                         <linearGradient id="logo-grad" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
-                            <stop stop-color="#6366f1"/>
-                            <stop offset="1" stop-color="#a855f7"/>
+                            <stop stop-color="#F26419"/>
+                            <stop offset="1" stop-color="#C94E0F"/>
                         </linearGradient>
                     </defs>
                 </svg>
