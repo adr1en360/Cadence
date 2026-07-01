@@ -14,5 +14,6 @@ Welcome to the Cadence recurring billing engine documentation index. This file l
 ## API Basics
 
 - **Base URL (Local)**: `http://127.0.0.1:8000`
+- **Base URL (Production)**: `https://[your-app-domain].onrender.com`
 - **Default Currency**: `NGN` (Nigerian Naira)
 - **Downstream Provider**: Nomba Sandbox Payment APIs (`https://sandbox.nomba.com`)
