@@ -9,21 +9,24 @@
         align-items: center;
         justify-content: center;
         min-height: 70vh;
+        animation: cardEnter 0.5s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .auth-card {
         width: 100%;
-        max-width: 420px;
-        padding: 2.5rem;
+        max-width: 440px;
+        padding: 3rem 2.5rem;
+        border-radius: 20px;
     }
 
     .auth-title {
         font-family: var(--font-title);
-        font-weight: 700;
-        font-size: 1.75rem;
+        font-weight: 800;
+        font-size: 2rem;
         margin-bottom: 0.5rem;
         text-align: center;
-        background: linear-gradient(135deg, #fff, var(--text-secondary));
+        letter-spacing: -0.02em;
+        background: linear-gradient(135deg, #FFFFFF, var(--text-secondary));
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
     }
@@ -32,49 +35,57 @@
         color: var(--text-secondary);
         font-size: 0.9rem;
         text-align: center;
-        margin-bottom: 2rem;
+        margin-bottom: 2.25rem;
+        font-weight: 300;
     }
 
     .form-group {
-        margin-bottom: 1.25rem;
+        margin-bottom: 1.5rem;
     }
 
     .form-group label {
         display: block;
-        font-size: 0.85rem;
-        font-weight: 500;
+        font-size: 0.8rem;
+        font-weight: 600;
         margin-bottom: 0.5rem;
         color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
     }
 
     .form-control {
         width: 100%;
-        background: rgba(255, 255, 255, 0.03);
+        background: rgba(255, 255, 255, 0.02);
         border: 1px solid var(--border-color);
-        border-radius: 8px;
-        padding: 0.75rem 1rem;
+        border-radius: 10px;
+        padding: 0.85rem 1.1rem;
         color: white;
         font-family: inherit;
         font-size: 0.95rem;
-        transition: all 0.2s ease;
+        transition: all 0.3s ease;
     }
 
     .form-control:focus {
         outline: none;
         border-color: var(--primary);
-        box-shadow: 0 0 0 2px var(--glow-color);
-        background: rgba(255, 255, 255, 0.05);
+        box-shadow: 0 0 0 3px var(--glow-color);
+        background: rgba(255, 255, 255, 0.04);
     }
 
     .error-msg {
         color: var(--danger);
         font-size: 0.85rem;
-        margin-top: 0.5rem;
+        margin-top: 0.75rem;
         display: none;
+        background: rgba(239, 68, 68, 0.08);
+        border: 1px solid rgba(239, 68, 68, 0.15);
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        line-height: 1.4;
     }
 
     .auth-footer {
-        margin-top: 1.5rem;
+        margin-top: 2rem;
         text-align: center;
         font-size: 0.85rem;
         color: var(--text-secondary);
@@ -83,6 +94,18 @@
     .auth-footer a {
         color: var(--primary);
         text-decoration: none;
+        font-weight: 600;
+        transition: color 0.2s ease;
+    }
+
+    .auth-footer a:hover {
+        color: var(--primary-hover);
+        text-decoration: underline;
+    }
+
+    @keyframes cardEnter {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
     }
 </style>
 {% endblock %}
@@ -106,7 +129,7 @@
             
             <div id="error-box" class="error-msg"></div>
             
-            <button type="submit" class="btn" style="width: 100%; margin-top: 1rem; padding: 0.75rem;">Sign In</button>
+            <button type="submit" class="btn" style="width: 100%; margin-top: 1rem; padding: 0.85rem;">Sign In</button>
         </form>
         
         <p class="auth-footer">
