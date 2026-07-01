@@ -30,7 +30,7 @@ class APIKey(Base):
     id = Column(String, primary_key=True, default=generate_uuid)
     merchant_id = Column(String, ForeignKey("merchants.id"), nullable=False)
     key_hash = Column(String, unique=True, index=True, nullable=False)
-    key_prefix = Column(String(8), nullable=False)
+    key_prefix = Column(String(16), nullable=False)
     label = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     is_active = Column(Boolean, default=True)

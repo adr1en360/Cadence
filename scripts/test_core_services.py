@@ -33,7 +33,7 @@ async def test_integration():
     try:
         # Create a mock merchant
         test_email = f"merchant_{int(asyncio.get_event_loop().time())}@test.com"
-        _, plain_key, hashed_key = generate_api_key_prefix_and_secret()
+        prefix, plain_key, hashed_key = generate_api_key_prefix_and_secret()
         
         merchant = Merchant(
             name="Test Cadence Merchant",
@@ -52,7 +52,7 @@ async def test_integration():
         api_key = APIKey(
             merchant_id=merchant.id,
             key_hash=hashed_key,
-            key_prefix=plain_key[:8],
+            key_prefix=prefix,
             label="Default Test Key"
         )
         db.add(api_key)
