@@ -1,89 +1,18 @@
-# Cadence Subscription Engine API
+# Cadence Developer Portal (llms.txt)
 
-Cadence is a lightweight, self-hosted recurring billing engine built on top of Nomba's online checkout API. It manages subscription state lifecycles, payment tokenization, and automatic renewal/dunning retries.
+Welcome to the Cadence recurring billing engine documentation index. This file lists the available API documentation pages, guides, and reference materials.
 
-## Authentication
-All developer API requests must include the Bearer API Key in the `Authorization` header:
-```http
-Authorization: Bearer cd_prefix_secret
-```
-API keys are generated and managed via the Merchant Dashboard.
+## Docs
 
-## API Endpoints
+- [Introduction](/developer): Learn the core concepts of Cadence's recurring billing layer and follow the quickstart guide to enroll your first customer.
+- [Authentication](/developer/authentication): Details the Bearer token authorization header format (e.g. `cd_dev_...`) and security best practices.
+- [Plans API](/developer/plans): API reference and request/response payloads to create, query, list, and archive recurring subscription plans.
+- [Subscriptions API](/developer/subscriptions): Explains subscriber enrollment, card tokenization redirection via Nomba checkout links, state tracking, and cancellation.
+- [Webhooks](/developer/webhooks): Outlines the events Cadence dispatches to merchant servers (e.g. `subscription.status_updated`), payload structures, and HMAC signature verification.
+- [Error Codes Reference](/developer/errors): Table of standard HTTP status codes, error descriptions, and recommended developer remedies.
 
-### 1. Plans
-Manage recurring billing packages.
+## API Basics
 
-#### Create a Plan
-* **Method & Path**: `POST /api/plans`
-* **Request Body (JSON)**:
-  * `name` (string): Friendly name of the plan (e.g. "Pro Monthly").
-  * `amount` (number): Billing price per interval.
-  * `currency` (string, default "NGN"): Three-letter ISO currency code.
-  * `interval_days` (number): Billing interval duration in days (e.g. `30` for monthly, `365` for yearly).
-  * `trial_days` (number, optional, default `0`): Duration of trial period.
-* **Response**: Plan object including the generated plan `id`.
-
-#### List Plans
-* **Method & Path**: `GET /api/plans`
-* **Response**: Array of active plan objects.
-
-#### Get Plan Details
-* **Method & Path**: `GET /api/plans/{plan_id}`
-* **Response**: Detailed plan object.
-
-#### Archive Plan (Soft Delete)
-* **Method & Path**: `DELETE /api/plans/{plan_id}`
-* **Response**: Status code 204.
-
----
-
-### 2. Subscriptions
-Create and manage customer subscription lifecycles.
-
-#### Create Subscription (Initialize Checkout)
-* **Method & Path**: `POST /api/subscriptions`
-* **Request Body (JSON)**:
-  * `plan_id` (string): The UUID of the plan to subscribe to.
-  * `customer_email` (string): The email of the subscriber.
-  * `customer_name` (string, optional): The name of the subscriber.
-  * `callback_url` (string): Destination URL to redirect the subscriber after successful checkout.
-* **Response (JSON)**:
-  * `id` (string): The generated subscription UUID.
-  * `status` (string): Initial state (`active` or `trialing`).
-  * `checkout_link` (string): The Nomba checkout page URL to present to the user. You must redirect your customer here to complete payment card tokenization.
-
-#### List Subscriptions
-* **Method & Path**: `GET /api/subscriptions`
-* **Response**: Array of subscription objects.
-
-#### Get Subscription Details
-* **Method & Path**: `GET /api/subscriptions/{subscription_id}`
-* **Response**: Complete details including `token_key`, `retry_count`, and `next_retry_at`.
-
-#### Cancel Subscription
-* **Method & Path**: `POST /api/subscriptions/{subscription_id}/cancel`
-* **Response**: Cancel confirmation, status transitions to `cancelled`.
-
----
-
-### 3. Inbound Webhooks
-Nomba webhooks should be pointed to your Cadence server at `/webhooks/nomba`.
-
-#### Nomba Webhook Endpoint
-* **Method & Path**: `POST /webhooks/nomba`
-* **Headers Required**:
-  * `nomba-signature`: Translucent HMAC signature payload.
-  * `nomba-timestamp`: Webhook trigger timestamp.
-* **Behavior**: Verification is handled automatically. Successful checkouts capture card tokens and activate subscriptions. Failures trigger retry/dunning workflows.
-
----
-
-## Subscription State Machine
-Subscriptions transition through the following states:
-1. `trialing` (optional): Active trial period. Transitions to `active` or `cancelled`.
-2. `active`: Payment card is successfully tokenized. Auto-renewals occur at `current_period_end`.
-3. `past_due`: Set when a renewal payment fails. Triggers escalating retry cycles (1 day, 3 days, 7 days).
-4. `suspended`: All retry attempts failed. Billing is halted.
-5. `cancelled`: User or merchant requested cancellation. (Terminal state).
-6. `expired`: Term limit reached. (Terminal state).
+- **Base URL (Local)**: `http://127.0.0.1:8000`
+- **Default Currency**: `NGN` (Nigerian Naira)
+- **Downstream Provider**: Nomba Sandbox Payment APIs (`https://sandbox.nomba.com`)
