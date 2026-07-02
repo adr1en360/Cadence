@@ -1,0 +1,33 @@
+name: Cadence Dunning Scheduler
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+jobs:
+  run-dunning:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run dunning cycle
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          ENVIRONMENT: ${{ secrets.ENVIRONMENT }}
+          NOMBA_CLIENT_ID: ${{ secrets.NOMBA_CLIENT_ID }}
+          NOMBA_CLIENT_SECRET: ${{ secrets.NOMBA_CLIENT_SECRET }}
+          NOMBA_ACCOUNT_ID: ${{ secrets.NOMBA_ACCOUNT_ID }}
+          NOMBA_WEBHOOK_SECRET: ${{ secrets.NOMBA_WEBHOOK_SECRET }}
+        run: python scripts/run_dunning.py
