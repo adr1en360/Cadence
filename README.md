@@ -115,9 +115,16 @@ Start the local development server:
 ```bash
 uv run uvicorn app.main:app --reload --port 8000
 ```
-FastAPI starts the web app. The dunning scheduler runs as a separate Render Cron Job process.
-*   **Merchant Dashboard:** Open `http://localhost:8000/dashboard`
-*   **Developer Portal:** Open `http://localhost:8000/developer`
+
+### Running the Dunning Scheduler
+The dunning scheduler does **NOT** run as a background thread inside the FastAPI process. Instead, it is decoupled and runs as a separate process (triggered via cron). To run the dunning and renewal cycle locally:
+```bash
+uv run python scripts/run_dunning.py
+```
+
+### Accessing the Interfaces
+*   **Merchant Dashboard:** Open [http://localhost:8000/dashboard](http://localhost:8000/dashboard) to manage projects, plans, and subscribers.
+*   **Developer Portal:** Open [http://localhost:8000/developer](http://localhost:8000/developer) to view public API references and webhook guides. Note that the default Swagger UI (`/docs`) has been disabled to secure internal merchant endpoints.
 
 ---
 

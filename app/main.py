@@ -7,7 +7,9 @@ from app.api import router_auth, router_plans, router_subscriptions, router_paym
 app = FastAPI(
     title="Cadence Subscription Engine",
     description="Managed subscription billing engine built on Nomba's payment APIs",
-    version="0.1.0"
+    version="0.1.0",
+    docs_url=None,
+    redoc_url=None
 )
 
 @app.get("/favicon.svg")

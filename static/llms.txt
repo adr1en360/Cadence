@@ -1,19 +1,62 @@
-# Cadence Developer Portal (llms.txt)
+# Cadence
 
-Welcome to the Cadence recurring billing engine documentation index. This file lists the available API documentation pages, guides, and reference materials.
+> Managed subscription billing engine built on Nomba's payment APIs 
+> for Nigerian developers.
+
+## What it is
+Cadence is a service layer that sits between Nomba's payment 
+primitives and a merchant's product. It automates recurring charges, 
+failed-payment recovery, and subscriber lifecycle management. 
+Merchants interact via a REST API and dashboard. Subscribers manage 
+their billing via a magic-link portal. Cadence handles all Nomba API 
+calls internally — neither merchant nor subscriber touches Nomba directly.
+
+## Architecture
+- Backend: FastAPI (Python), PostgreSQL via Docker/Render, hosted on Render
+- Dunning scheduler runs as a separate Render Cron Job process, 
+  NOT a background thread inside FastAPI
+- Multi-tenant: each merchant has Projects; API keys are scoped to projects
+- Nomba OAuth tokens are cached per-project with 30-minute expiry 
+  and auto-refreshed
+- tokenKey (card token for recurring charges) is captured from Nomba 
+  webhook payload at payload["data"]["tokenKey"]
+- Swagger UI (/docs) is disabled. Developer docs live at /developer
+
+## Subscription Lifecycle
+Six states with enforced valid transitions only:
+trialing → active → past_due → suspended → cancelled/expired
+
+Dunning schedule on payment failure: retry at day 1, day 3, day 7.
+After day 7 failure: suspended → cancelled.
+
+## API
+Base URL: https://cadence.onrender.com
+Auth: Authorization: Bearer cd_<key>
+Keys are project-scoped and generated from the merchant dashboard.
+
+Endpoints:
+POST   /api/plans                        Create a subscription plan
+GET    /api/plans                        List plans
+GET    /api/plans/{id}                   Get plan
+POST   /api/subscriptions                Enroll subscriber, returns checkout_url
+GET    /api/subscriptions                List subscriptions
+GET    /api/subscriptions/{id}           Get subscription state
+POST   /api/subscriptions/{id}/cancel    Cancel subscription
+POST   /api/subscriptions/{id}/portal-link  Generate subscriber magic link
+
+## Key Concepts
+- tokenKey: Nomba's card token returned after first checkout. 
+  Used for all future recurring charges. Stored on the subscription.
+- dunning: Automatic retry schedule for failed payments
+- portal-link: Magic link sent to subscriber for self-service 
+  billing management. No password required.
+- project: Multi-tenancy container. One merchant can have many projects.
 
 ## Docs
-
-- [Introduction](/developer): Learn the core concepts of Cadence's recurring billing layer and follow the quickstart guide to enroll your first customer.
-- [Authentication](/developer/authentication): Details the Bearer token authorization header format (e.g. `cd_dev_...`) and security best practices.
-- [Plans API](/developer/plans): API reference and request/response payloads to create, query, list, and archive recurring subscription plans.
-- [Subscriptions API](/developer/subscriptions): Explains subscriber enrollment, card tokenization redirection via Nomba checkout links, state tracking, and cancellation.
-- [Webhooks](/developer/webhooks): Outlines the events Cadence dispatches to merchant servers (e.g. `subscription.status_updated`), payload structures, and HMAC signature verification.
-- [Error Codes Reference](/developer/errors): Table of standard HTTP status codes, error descriptions, and recommended developer remedies.
-
-## API Basics
-
-- **Base URL (Local)**: `http://127.0.0.1:8000`
-- **Base URL (Production)**: `https://[your-app-domain].onrender.com`
-- **Default Currency**: `NGN` (Nigerian Naira)
-- **Downstream Provider**: Nomba Sandbox Payment APIs (`https://sandbox.nomba.com`)
+- /developer — Introduction and quickstart
+- /developer/authentication — API key format and usage
+- /developer/plans — Plans API reference
+- /developer/subscriptions — Subscriptions API reference
+- /developer/webhooks — Webhook events and HMAC verification
+- /developer/errors — Error codes
+- /openapi.json — Machine-readable API spec

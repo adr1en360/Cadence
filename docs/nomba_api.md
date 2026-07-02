@@ -197,7 +197,7 @@ Then: `HMAC-SHA256(secret_key, signing_string)` → Base64 encode → compare wi
   "requestId": "550e8400-e29b-41d4-a716-446655440000",
   "data": {
     "merchant": { "userId": "<accountId>" },
-    "tokenKey": "e890bd1a9f0d",
+    "tokenKey": "e890bd1a9f0d", // <-- HERE: tokenKey resides inside payload['data']['tokenKey']
     "transaction": {
       "fee": 0.28,
       "type": "online_checkout",
