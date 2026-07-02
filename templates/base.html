@@ -233,19 +233,22 @@
 <body>
     <header>
         <div class="nav-container">
-            <a href="/" class="logo">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="url(#logo-grad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M2 17L12 22L22 17M2 12L12 17L22 12" stroke="url(#logo-grad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <defs>
-                        <linearGradient id="logo-grad" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
-                            <stop stop-color="#FF6B00"/>
-                            <stop offset="1" stop-color="#C94E0F"/>
-                        </linearGradient>
-                    </defs>
-                </svg>
-                <span>Cadence</span>
-            </a>
+            <div style="display: flex; align-items: center; gap: 2rem;">
+                <a href="/" class="logo">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="url(#logo-grad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M2 17L12 22L22 17M2 12L12 17L22 12" stroke="url(#logo-grad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <defs>
+                            <linearGradient id="logo-grad" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+                                <stop stop-color="#FF6B00"/>
+                                <stop offset="1" stop-color="#C94E0F"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                    <span>Cadence</span>
+                </a>
+                {% block nav_project %}{% endblock %}
+            </div>
             <div class="nav-links">
                 {% block nav_links %}{% endblock %}
             </div>

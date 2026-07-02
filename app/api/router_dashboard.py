@@ -276,6 +276,7 @@ def list_dashboard_subscriptions(
                     "amount": float(p.amount),
                     "currency": p.currency,
                     "status": p.status,
+                    "nomba_order_ref": p.nomba_order_ref,
                     "nomba_transaction_id": p.nomba_transaction_id or "",
                     "created_at": p.created_at.isoformat()
                 } for p in payments

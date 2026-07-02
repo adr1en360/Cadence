@@ -53,14 +53,7 @@ A dual font system is implemented to separate brand actions from content reading
 To prevent horizontal scrolls across desktop, tablet, and mobile displays, layouts automatically reflow and hide secondary metadata:
 
 ### Auto-Fit Metric Grids
-Dashboard overview cards automatically wrap between 1, 2, and 4 columns depending on the viewport width using a fluid container definition:
-```css
-.metrics-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-    gap: 1.5rem;
-}
-```
+Dashboard overview cards automatically wrap between 1, 2, and 4 columns depending on the viewport width. To prevent text truncation, cards are styled with compact padding (`1.25rem`) and values use a maximum font size of `1.4rem` without horizontal truncation bounds.
 
 ### Table Column Hiding
 Table lists are kept concise by dropping less critical developer metadata columns using media breakpoints.
@@ -81,15 +74,22 @@ Table lists are kept concise by dropping less critical developer metadata column
 }
 ```
 
-### Sidebar Transition
-*   **Desktop:** Positioned as a sticky left-rail panel (`width: 250px; position: sticky; top: 100px;`).
-*   **Mobile (< 900px):** Transitions to a horizontal scrolling navigation bar at the top of the main layout container.
+### Details Pane Stacking
+To maximize horizontal workspace, nested lists inside detail sub-panes (e.g., *Payment Attempts* and *Audit Logs*) are stacked vertically using a flexible column structure. This allows tabular data to utilize the full content width and eliminates inner scrollbars entirely.
+
+---
+
+### Sticky Layout Offsets
+*   **Main Navigation Header:** Sticky at `top: 0` (height ~64px).
+*   **Project Selector Dropdown:** Integrated directly into the main navigation header next to the brand logo as `Project: {select}`. This keeps all context unified and leaves the content area entirely free of selector bars.
+*   **Dashboard Sidebar:** Sticky at `top: 90px` on desktop to clear the main navigation header during scroll events.
+*   **Mobile Sidebar (< 900px):** Transitions to a horizontal scrolling navigation bar at the top of the main layout container.
 
 ---
 
 ## 5. Self-Service Customer Portal
 
-The subscriber-facing portal page is styled as a standalone interface:
-*   Extends zero shared base dashboard templates to remove merchant headers, navigation sidebars, and footers.
-*   Uses a single central card container centered on a solid `#0a0b0d` background.
-*   Presents a physical card mockup representation indicating tokenized credit card states.
+The subscriber-facing portal page is styled as a standalone, non-scrollable single-view interface:
+*   Extends zero shared base templates to remove merchant headers, navigation sidebars, and footers.
+*   Set to `height: 100vh; overflow: hidden;` on the page body to ensure it fits perfectly within the screen viewport boundaries without any scrollbars.
+*   Uses a thinned card container (`480px` max-width) with compact padding (`1.5rem`), tight detail margins (`0.55rem`), and a compact card mockup (`140px` height) to fit details cleanly on all desktop and mobile screen heights.
