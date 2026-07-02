@@ -1,6 +1,11 @@
 from fastapi import FastAPI, Depends, Response
+from fastapi.responses import RedirectResponse
+from fastapi.openapi.utils import get_openapi
 from sqlalchemy.orm import Session
 from sqlalchemy import text
+import json
+import os
+
 from app.core.database import get_db
 from app.api import router_auth, router_plans, router_subscriptions, router_payments, router_webhooks, router_dashboard, router_portal, developer_routes
 
@@ -9,8 +14,13 @@ app = FastAPI(
     description="Managed subscription billing engine built on Nomba's payment APIs",
     version="0.1.0",
     docs_url=None,
-    redoc_url=None
+    redoc_url=None,
+    openapi_url=None
 )
+
+@app.get("/favicon.ico")
+def get_favicon_ico():
+    return RedirectResponse(url="/favicon.svg")
 
 @app.get("/favicon.svg")
 def get_favicon():
@@ -31,6 +41,37 @@ app.include_router(router_webhooks.router)
 app.include_router(router_dashboard.router)
 app.include_router(router_portal.router)
 app.include_router(developer_routes.router)
+
+def get_public_openapi_spec():
+    """Build a temporary FastAPI instance and generate public-only schema."""
+    public_app = FastAPI(
+        title="Cadence Public Developer API",
+        description="Public API endpoints for creating billing plans and enrolling subscribers on the Cadence engine.",
+        version="0.1.0"
+    )
+    public_app.include_router(router_plans.router)
+    public_app.include_router(router_subscriptions.router)
+    
+    return get_openapi(
+        title=public_app.title,
+        version=public_app.version,
+        openapi_version=public_app.openapi_version,
+        description=public_app.description,
+        routes=public_app.routes,
+    )
+
+@app.on_event("startup")
+def save_public_openapi_schema():
+    """Cache the public OpenAPI schema to a static JSON file on startup."""
+    os.makedirs("static", exist_ok=True)
+    schema = get_public_openapi_spec()
+    with open("static/openapi.json", "w") as f:
+        json.dump(schema, f, indent=2)
+
+@app.get("/openapi.json")
+def get_public_openapi():
+    """Serves the clean, developer-facing public OpenAPI spec."""
+    return get_public_openapi_spec()
 
 @app.get("/health")
 def health_check(db: Session = Depends(get_db)):
