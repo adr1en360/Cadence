@@ -317,10 +317,11 @@ async def get_wallet_balance_route(
             "currency": balance_data["currency"]
         }
     except Exception as e:
+        print(f"[DASHBOARD] Wallet balance check failed for project {project_id}: {type(e).__name__} - {str(e)}")
         return {
             "amount": 0.0,
             "currency": "NGN",
-            "error": str(e)
+            "error": "Failed to retrieve wallet balance"
         }
 
 @router.post("/api/dashboard/subscriptions/{sub_id}/portal-link")
@@ -397,4 +398,5 @@ async def dashboard_refund_payment(
         else:
             raise RuntimeError(f"Nomba refund rejected: {resp}")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        print(f"[DASHBOARD] Refund failed for payment {payment_id}: {type(e).__name__} - {str(e)}")
+        raise HTTPException(status_code=500, detail="Refund processing failed")

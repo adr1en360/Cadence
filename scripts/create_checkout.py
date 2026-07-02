@@ -113,7 +113,7 @@ def create_tokenized_checkout(callback_url: str, token: str = None, account_id: 
                 print(f"   3. Expiry: any future date (e.g., 12/30)")
                 print(f"   4. CVV: any 3 digits (e.g., 123)")
                 print(f"   5. PIN: 1234")
-                print(f"   6. OTP: 9999")
+                print(f"   6. OTP: 1234")
                 print(f"   7. Watch webhook_receiver.py terminal for the payload")
             else:
                 print(f"\n[!] Could not find checkoutLink in response. Check the full response above.")
@@ -166,9 +166,9 @@ if __name__ == "__main__":
             print(f"[ERROR] Failed to get token: {e}")
             sys.exit(1)
 
-        callback_url = f"{ngrok_url}/webhook/nomba"
+        callback_url = f"{ngrok_url}/webhooks/nomba"
         create_tokenized_checkout(callback_url, token=token, account_id=account_id)
     else:
         ngrok_url = sys.argv[1].rstrip("/")
-        callback_url = f"{ngrok_url}/webhook/nomba"
+        callback_url = f"{ngrok_url}/webhooks/nomba"
         create_tokenized_checkout(callback_url)

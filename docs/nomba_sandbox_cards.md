@@ -24,8 +24,8 @@ Only the card number determines the checkout outcome. For fields like expiry dat
 
 When navigating the checkout screens, type the following inputs to verify specific payment state transitions:
 
-*   **Card PIN:** Use **`9999`**
-*   **OTP (Successful Charge):** Use **`9999`**
+*   **Card PIN:** Use **`1234`**
+*   **OTP (Successful Charge):** Use **`1234`**
 *   **OTP (Timeout):** Use **`1234`**
 *   **OTP (Invalid Code):** Use **`5464`**
 

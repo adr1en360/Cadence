@@ -90,7 +90,7 @@ def verify_nomba_webhook(
     timestamp = headers.get("nomba-timestamp", "")
     if not timestamp:
         # Check lowercase header just in case
-        timestamp = headers.get("nomba-timestamp", "")
+        timestamp = headers.get("Nomba-Timestamp", "")
 
     # Signing string:
     # {event_type}:{requestId}:{userId}:{walletId}:{transactionId}:{type}:{time}:{responseCode}:{nomba-timestamp}
@@ -99,7 +99,7 @@ def verify_nomba_webhook(
     computed_hmac = hmac.new(
         secret_key.encode("utf-8"),
         signing_string.encode("utf-8"),
-        hashlib.sha256
+        digestmod=hashlib.sha256
     ).digest()
     
     computed_signature = base64.b64encode(computed_hmac).decode("utf-8")
@@ -117,6 +117,28 @@ def sign_outbound_webhook(payload: dict, secret: str) -> str:
     signature = hmac.new(
         secret.encode("utf-8"),
         raw_body.encode("utf-8"),
-        hashlib.sha256
+        digestmod=hashlib.sha256
     ).hexdigest()
     return signature
+
+def get_fernet():
+    # Derive a 32-byte URL-safe base64 key from SECRET_KEY
+    import hashlib
+    import base64
+    from app.core.config import settings
+    try:
+        from cryptography.fernet import Fernet
+    except ImportError:
+        raise ImportError("cryptography package required — run: pip install cryptography")
+    
+    key_bytes = hashlib.sha256(
+        settings.SECRET_KEY.encode("utf-8")
+    ).digest()
+    fernet_key = base64.urlsafe_b64encode(key_bytes)
+    return Fernet(fernet_key)
+
+def encrypt_credential(plaintext: str) -> str:
+    return get_fernet().encrypt(plaintext.encode("utf-8")).decode("utf-8")
+
+def decrypt_credential(ciphertext: str) -> str:
+    return get_fernet().decrypt(ciphertext.encode("utf-8")).decode("utf-8")

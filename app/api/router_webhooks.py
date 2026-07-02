@@ -4,6 +4,8 @@ from app.core.database import get_db
 from app.core.security import verify_nomba_webhook
 from app.models.project import Project
 from app.services.billing_service import BillingService
+from app.api.deps import get_current_merchant
+from app.models.merchant import Merchant
 
 router = APIRouter(prefix="/webhooks", tags=["Webhooks"])
 
@@ -64,6 +66,10 @@ async def handle_nomba_webhook(request: Request, db: Session = Depends(get_db)):
     # Nomba token key resides under data.tokenKey or in webhook payload
     token_key = data.get("tokenKey")
     
+    # Event Type Mapping:
+    # Nomba's underscore events (e.g. `payment_success`, `payment_failed`)
+    # are mapped to Cadence's internal dot-notation events (e.g. `payment.succeeded`, `payment.failed`)
+    # inside the BillingService processing methods.
     if event_type == "payment_success" and order_ref:
         BillingService.process_payment_success(
             db=db,
@@ -83,7 +89,7 @@ async def handle_nomba_webhook(request: Request, db: Session = Depends(get_db)):
     return {"status": "received"}
 
 @router.post("/test-success")
-def trigger_test_success_webhook(payload: dict, db: Session = Depends(get_db)):
+def trigger_test_success_webhook(payload: dict, merchant: Merchant = Depends(get_current_merchant), db: Session = Depends(get_db)):
     """Sandbox endpoint to simulate a successful payment webhook for a given order reference."""
     order_ref = payload.get("order_ref")
     transaction_id = payload.get("transaction_id", "test_txn_12345")
@@ -104,7 +110,7 @@ def trigger_test_success_webhook(payload: dict, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.post("/test-failed")
-def trigger_test_failed_webhook(payload: dict, db: Session = Depends(get_db)):
+def trigger_test_failed_webhook(payload: dict, merchant: Merchant = Depends(get_current_merchant), db: Session = Depends(get_db)):
     """Sandbox endpoint to simulate a failed payment webhook for a given order reference."""
     order_ref = payload.get("order_ref")
     

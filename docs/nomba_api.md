@@ -60,7 +60,7 @@ Config flag `NOMBA_ENV=sandbox|production` switches all paths.
 
 ## 2. Create Checkout Order
 
-**Sandbox:** `POST /sandbox/checkout/order`
+**Sandbox:** `POST /v1/checkout/order`
 **Production:** `POST /v1/checkout/order`
 **Headers:** `Authorization: Bearer <token>`, `accountId: <account_id>`
 
@@ -146,7 +146,7 @@ Config flag `NOMBA_ENV=sandbox|production` switches all paths.
 
 ## 5. Checkout Refund
 
-**Sandbox:** `POST /sandbox/checkout/refund`
+**Sandbox:** `POST /v1/checkout/refund`
 **Production:** `POST /v1/checkout/refund`
 
 ```json
@@ -160,7 +160,7 @@ Config flag `NOMBA_ENV=sandbox|production` switches all paths.
 
 ## 6. Fetch Transaction (Verify)
 
-**Sandbox:** `GET /sandbox/checkout/transaction?idType=orderReference&id=<ref>`
+**Sandbox:** `GET /v1/checkout/transaction?idType=orderReference&id=<ref>`
 **Production:** `GET /v1/checkout/transaction?idType=orderReference&id=<ref>`
 
 ---

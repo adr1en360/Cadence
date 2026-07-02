@@ -9,7 +9,7 @@ from app.api.deps import get_project_by_api_key
 from app.models.project import Project
 from app.models.plan import Plan
 from app.models.subscription import Subscription
-from app.services.billing_service import BillingService
+from app.services.billing_service import BillingService, VALID_TRANSITIONS
 
 router = APIRouter(prefix="/api/subscriptions", tags=["Subscriptions"])
 
@@ -63,9 +63,10 @@ async def create_subscription(
             "checkout_link": checkout_link
         }
     except Exception as e:
+        print(f"[SUBSCRIPTIONS] Failed to initialize checkout for {payload.customer_email}: {type(e).__name__} - {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to initialize subscription checkout: {str(e)}"
+            detail="Failed to initialize subscription checkout"
         )
 
 @router.get("")
@@ -76,6 +77,8 @@ def list_subscriptions(
 ):
     query = db.query(Subscription).filter(Subscription.project_id == project.id)
     if status_filter:
+        if status_filter not in VALID_TRANSITIONS:
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Invalid status filter")
         query = query.filter(Subscription.status == status_filter)
     subs = query.all()
     return [
@@ -136,9 +139,10 @@ def cancel_subscription(
         BillingService.cancel_subscription(db, sub)
         return {"message": "Subscription cancelled successfully", "status": sub.status}
     except ValueError as e:
+        print(f"[SUBSCRIPTIONS] Failed to cancel subscription {sub_id}: ValueError - {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
+            detail="Subscription cannot be cancelled from its current state"
         )
 
 @router.post("/{sub_id}/portal-link")

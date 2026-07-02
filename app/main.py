@@ -61,6 +61,14 @@ def get_public_openapi_spec():
     )
 
 @app.on_event("startup")
+def verify_secret_key():
+    """Verify that SECRET_KEY is not the default value in production environment."""
+    from app.core.config import settings
+    env = os.getenv("ENVIRONMENT", "development")
+    if env == "production" and settings.SECRET_KEY == "cadence-dev-secret-change-in-production":
+        raise RuntimeError("Insecure SECRET_KEY fallback is not allowed in production environment.")
+
+@app.on_event("startup")
 def save_public_openapi_schema():
     """Cache the public OpenAPI schema to a static JSON file on startup."""
     os.makedirs("static", exist_ok=True)
@@ -80,7 +88,8 @@ def health_check(db: Session = Depends(get_db)):
         db.execute(text("SELECT 1;"))
         db_status = "connected"
     except Exception as e:
-        db_status = f"disconnected ({str(e)})"
+        print(f"[HEALTH] Database connection failed: {type(e).__name__} - {str(e)}")
+        db_status = "disconnected"
         
     return {
         "status": "healthy",

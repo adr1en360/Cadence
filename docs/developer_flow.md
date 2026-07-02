@@ -32,7 +32,7 @@ sequenceDiagram
     Customer->>Nomba: Enters card details & submits OTP
     Nomba->>Cadence: Webhook: payment_success (with tokenKey)
     Cadence->>Cadence: Save tokenKey, activate subscription
-    Cadence->>App: Webhook: subscription.activated
+    Cadence->>App: Webhook: subscription.status_updated
 
     Note over Customer, Nomba: Phase 3: Automated Renewals & Dunning
     Cron->>Cadence: Run Scheduler (uv run scripts/run_dunning.py)
@@ -40,7 +40,7 @@ sequenceDiagram
         Cadence->>Nomba: Charge tokenKey (X-Idempotent-key)
         alt Charge Succeeds
             Nomba-->>Cadence: Return success status
-            Cadence->>App: Webhook: payment.succeeded / subscription.renewed
+            Cadence->>App: Webhook: payment.succeeded / subscription.status_updated
         else Charge Fails
             Nomba-->>Cadence: Return failed status
             Cadence->>Cadence: Move to past_due, schedule retry
@@ -91,9 +91,10 @@ Redirect the subscriber to the returned `checkout_link` to enter their payment d
 
 ### Step D: Listen to Webhooks
 Configure your backend to receive POST webhooks from Cadence. Verify the signature and handle events:
-- `subscription.activated`: Enable access to your product.
+- `subscription.status_updated`: Enable or disable access based on the new status (`active` or `suspended`/`expired`).
+- `payment.succeeded`: Log successful payment event.
 - `payment.failed`: Warn user of payment issue.
-- `subscription.suspended` / `subscription.cancelled`: Disable access to your product.
+- `subscription.cancelled`: Disable access to your product.
 
 ---
 

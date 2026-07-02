@@ -10,7 +10,7 @@ from app.core.nomba_client import nomba_client
 
 VALID_TRANSITIONS = {
     "trialing":  ["active", "cancelled"],
-    "active":    ["past_due", "cancelled", "expired"],
+    "active":    ["past_due", "cancelled", "expired", "suspended"],
     "past_due":  ["active", "suspended"],
     "suspended": ["active", "cancelled"],
     "cancelled": [],   # terminal
@@ -107,7 +107,8 @@ class BillingService:
             amount=plan.amount,
             currency=plan.currency,
             nomba_order_ref=order_ref,
-            status="pending"
+            status="pending",
+            idempotency_key=f"idemp_{subscription.id}_{order_ref}"
         )
         db.add(payment)
         db.commit()

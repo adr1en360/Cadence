@@ -50,7 +50,7 @@ Total grace period: **11 days** from first failure to suspension.
 ```python
 VALID_TRANSITIONS = {
     "trialing":  ["active", "cancelled"],
-    "active":    ["past_due", "cancelled", "expired"],
+    "active":    ["past_due", "cancelled", "expired", "suspended"],
     "past_due":  ["active", "suspended"],
     "suspended": ["active", "cancelled"],
     "cancelled": [],   # terminal
@@ -64,12 +64,12 @@ Every transition creates an `Event` record:
 
 | Trigger | Event Type | Example |
 |---------|-----------|---------|
-| First payment succeeds | `subscription.activated` | Trial → Active |
+| First payment succeeds | `subscription.status_updated` | Trial → Active |
 | Renewal payment fails | `payment.failed` | Active → Past Due |
 | Retry succeeds | `payment.succeeded` | Past Due → Active |
-| All retries exhausted | `subscription.suspended` | Past Due → Suspended |
+| All retries exhausted | `subscription.status_updated` | Past Due → Suspended |
 | Subscriber cancels | `subscription.cancelled` | Active → Cancelled |
-| Card updated + charged | `subscription.reactivated` | Suspended → Active |
+| Card updated + charged | `subscription.status_updated` | Suspended → Active |
 
 ---
 

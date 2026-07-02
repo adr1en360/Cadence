@@ -77,7 +77,8 @@ async def update_card(sub_id: str, token: str = None, db: Session = Depends(get_
             amount=charge_amount,
             currency="NGN",
             nomba_order_ref=order_ref,
-            status="pending"
+            status="pending",
+            idempotency_key=f"idemp_{sub.id}_{order_ref}"
         )
         db.add(payment)
         db.commit()
@@ -102,9 +103,10 @@ async def update_card(sub_id: str, token: str = None, db: Session = Depends(get_
         return {"checkout_link": checkout_link}
         
     except Exception as e:
+        print(f"[PORTAL] Failed to initialize card authorization for sub {sub.id}: {type(e).__name__} - {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to initialize card authorization: {str(e)}"
+            detail="Failed to initialize card authorization"
         )
 
 @router.post("/api/portal/{sub_id}/cancel")
@@ -119,4 +121,5 @@ def cancel_portal_subscription(sub_id: str, token: str = None, db: Session = Dep
         BillingService.cancel_subscription(db, sub)
         return {"status": "cancelled"}
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        print(f"[PORTAL] Failed to cancel subscription {sub.id}: ValueError - {str(e)}")
+        raise HTTPException(status_code=400, detail="Subscription cannot be cancelled from its current state")

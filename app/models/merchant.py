@@ -15,6 +15,9 @@ class Merchant(Base):
     email = Column(String, unique=True, index=True, nullable=False)
     password_hash = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
+    nomba_client_id = Column(String, nullable=True)
+    nomba_client_secret_encrypted = Column(String, nullable=True)
+    nomba_account_id = Column(String, nullable=True)
 
     projects = relationship("Project", back_populates="merchant", cascade="all, delete-orphan")
 

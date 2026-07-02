@@ -3,7 +3,7 @@ from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session
 from typing import Optional
 from app.core.database import get_db
-from app.core.security import hash_password, verify_password, create_access_token, generate_api_key_prefix_and_secret
+from app.core.security import hash_password, verify_password, create_access_token, generate_api_key_prefix_and_secret, encrypt_credential
 from app.api.deps import get_current_merchant
 from app.models.merchant import Merchant, APIKey
 from app.models.project import Project
@@ -14,6 +14,9 @@ class RegisterRequest(BaseModel):
     name: str
     email: EmailStr
     password: str
+    nomba_client_id: str
+    nomba_client_secret: str
+    nomba_account_id: str
 
 class LoginRequest(BaseModel):
     email: str
@@ -34,11 +37,20 @@ def register_merchant(payload: RegisterRequest, db: Session = Depends(get_db)):
             detail="Email address already registered"
         )
         
-    merchant = Merchant(
-        name=payload.name,
-        email=payload.email,
-        password_hash=hash_password(payload.password)
-    )
+    try:
+        merchant = Merchant(
+            name=payload.name,
+            email=payload.email,
+            password_hash=hash_password(payload.password),
+            nomba_client_id=payload.nomba_client_id,
+            nomba_client_secret_encrypted=encrypt_credential(payload.nomba_client_secret) if payload.nomba_client_secret else None,
+            nomba_account_id=payload.nomba_account_id
+        )
+    except ImportError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
     db.add(merchant)
     db.commit()
     db.refresh(merchant)
@@ -46,12 +58,21 @@ def register_merchant(payload: RegisterRequest, db: Session = Depends(get_db)):
     # Automatically create a default project for the newly registered merchant
     default_proj = Project(
         merchant_id=merchant.id,
-        name="My First Project"
+        name="My First Project",
+        nomba_client_id=payload.nomba_client_id,
+        nomba_client_secret_encrypted=payload.nomba_client_secret,
+        nomba_account_id=payload.nomba_account_id
     )
     db.add(default_proj)
     db.commit()
     
-    return {"message": "Merchant registered successfully", "merchant_id": merchant.id}
+    access_token = create_access_token(data={"sub": merchant.email})
+    return {
+        "message": "Merchant registered successfully",
+        "merchant_id": merchant.id,
+        "access_token": access_token,
+        "token_type": "bearer"
+    }
 
 @router.post("/login")
 def login_merchant(payload: LoginRequest, db: Session = Depends(get_db)):

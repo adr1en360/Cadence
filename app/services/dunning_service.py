@@ -1,4 +1,5 @@
 import asyncio
+import httpx
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 from app.models.subscription import Subscription
@@ -12,12 +13,30 @@ class DunningService:
     async def process_renewal(db: Session, subscription: Subscription) -> bool:
         """Attempt to charge the tokenized card for renewal."""
         if not subscription.token_key:
-            # No tokenized card key present, transition straight to past_due or suspended
+            import json
             print(f"[DUNNING] No card token available for subscription: {subscription.id}")
-            if subscription.status == "active":
-                BillingService.transition_state(db, subscription, "past_due")
-                subscription.retry_count = 0
-                subscription.next_retry_at = datetime.utcnow() + timedelta(days=1)
+            if subscription.status == "trialing":
+                BillingService.transition_state(db, subscription, "cancelled")
+                subscription.cancelled_at = datetime.utcnow()
+                event_type = "subscription.cancelled"
+            elif subscription.status in ("active", "past_due"):
+                BillingService.transition_state(db, subscription, "suspended")
+                event_type = "subscription.suspended"
+            else:
+                event_type = None
+
+            if event_type:
+                event = Event(
+                    project_id=subscription.project_id,
+                    subscription_id=subscription.id,
+                    event_type=event_type,
+                    data_json=json.dumps({
+                        "subscription_id": subscription.id,
+                        "reason": "token_key_missing",
+                        "timestamp": datetime.utcnow().isoformat()
+                    })
+                )
+                db.add(event)
                 db.add(subscription)
                 db.commit()
             return False
@@ -103,8 +122,12 @@ class DunningService:
                 DunningService.handle_failure(db, subscription)
                 return False
                 
+        except (httpx.TimeoutException, httpx.NetworkError, asyncio.TimeoutError) as e:
+            print(f"[DUNNING] Network timeout during card charge for sub {subscription.id}, order {order_ref}: {type(e).__name__} - {str(e)}")
+            # Do not change payment status; allow pre-flight verification to check it later
+            return False
         except Exception as e:
-            print(f"[DUNNING] Error occurred during card charge: {e}")
+            print(f"[DUNNING] Error occurred during card charge for sub {subscription.id}, order {order_ref}: {type(e).__name__} - {str(e)}")
             payment.status = "failed"
             db.add(payment)
             DunningService.handle_failure(db, subscription)

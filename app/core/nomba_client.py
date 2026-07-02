@@ -120,6 +120,9 @@ class NombaClient:
         sub_account_id: str = None
     ) -> dict:
         """Charge a saved card using its tokenKey (Tokenized Card Payment)."""
+        if not token_key:
+            raise ValueError("token_key cannot be null or empty for tokenized card charges")
+            
         url = f"{self.base_url}/v1/checkout/tokenized-card-payment"
         
         order_payload = {

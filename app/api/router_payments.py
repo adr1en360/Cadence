@@ -75,7 +75,8 @@ async def refund_payment(
             raise RuntimeError(f"Nomba refund rejected: {resp}")
             
     except Exception as e:
+        print(f"[PAYMENTS] Refund failed for payment {payment.id}: {type(e).__name__} - {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to process refund via Nomba: {str(e)}"
+            detail="Failed to process refund via Nomba"
         )

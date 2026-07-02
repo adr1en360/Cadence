@@ -63,7 +63,7 @@ app/
 
 ## What Good Output Looks Like
 - Every route handler is thin — it validates input, calls a service, returns a response
-- All Nomba API calls go through `nomba_client.py` → `token_manager.py`, never direct
+- All Nomba API calls go through `nomba_client.py`, never direct
 - The billing state machine enforces valid transitions only (no jumping from `trialing` to `expired`)
 - Dunning scheduler uses `FOR UPDATE SKIP LOCKED` — safe for concurrent runs
 - Every state change creates an `Event` record in the audit log
@@ -73,7 +73,7 @@ app/
 - No raw SQL — use SQLAlchemy ORM everywhere
 - No Nomba credentials in code — environment variables only (`NOMBA_CLIENT_ID`, `NOMBA_CLIENT_SECRET`, `NOMBA_ACCOUNT_ID`, `NOMBA_ENV`)
 - Sandbox uses `/sandbox/checkout/` paths, production uses `/v1/checkout/` — the `nomba_client.py` switches based on `NOMBA_ENV`
-- OAuth2 tokens expire in 30 minutes — `token_manager.py` must refresh proactively
+- OAuth2 tokens expire in 30 minutes — `nomba_client.py` must refresh proactively
 - Idempotency header is `X-Idempotent-key` (note exact casing)
 - Webhook HMAC uses colon-delimited structured string, NOT raw body
 

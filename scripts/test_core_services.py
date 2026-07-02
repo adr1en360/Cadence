@@ -3,6 +3,7 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import asyncio
+# pyrefly: ignore [missing-import]
 from dotenv import load_dotenv
 from sqlalchemy.orm import Session
 from app.core.database import SessionLocal, Base, engine
@@ -94,7 +95,7 @@ async def test_integration():
     print("[*] Simulating checkout creation via billing_service...")
     try:
         # Create subscription with checkout url mapping
-        callback_url = "https://localhost:8000/webhook/nomba"
+        callback_url = "https://localhost:8000/webhooks/nomba"
         subscription, checkout_link = await BillingService.create_subscription(
             db=db,
             project=project,

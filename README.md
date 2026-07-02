@@ -51,8 +51,9 @@ Cadence solves this by automating:
 For a detailed look at system architecture and subscription rules, see:
 *   [docs/developer_flow.md](docs/developer_flow.md) — High-Level Flow & Integration Guide
 *   [docs/api_surface.md](docs/api_surface.md) — Public API Endpoints & Developer Reference
-*   [docs/billing_states.md](docs/billing_states.md) — Subscription State Machine & Dunning Rules
+*   [docs/billing_states.md](docs/billing_states.md) — Subscription State Machine, Dunning, & Pre-flight Recovery
 *   [docs/nomba_api.md](docs/nomba_api.md) — Nomba API Integration & Webhook Signatures
+*   [docs/nomba_sandbox_cards.md](docs/nomba_sandbox_cards.md) — Sandbox Test Cards & PIN/OTP Codes Reference
 
 ---
 
@@ -149,9 +150,15 @@ The following environment variables configure the service:
 ## Development & Testing
 
 ### Running Tests
-To run unit and integration tests (ensure your test DB is configured):
+To run unit and integration tests (isolated in the `tests/` directory):
 ```bash
 uv run pytest
+```
+
+### Verifying Integration Flows (No Webhook Setup Required)
+You can run the core integration verification script to programmatically assert database models, checkout configurations, and state machine transition guards:
+```bash
+uv run python scripts/test_core_services.py
 ```
 
 ### Testing Checkout & Webhooks Locally
@@ -163,7 +170,7 @@ uv run pytest
    ```bash
    uv run scripts/create_checkout.py <your_ngrok_url>
    ```
-3. Complete the checkout payment using the test cards in [docs/nomba_api.md](docs/nomba_api.md).
+3. Complete the checkout payment using the test card credentials and PIN/OTP triggers defined in [docs/nomba_sandbox_cards.md](docs/nomba_sandbox_cards.md).
 
 ---
 
