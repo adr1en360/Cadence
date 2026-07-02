@@ -58,7 +58,7 @@ def register_merchant(payload: RegisterRequest, db: Session = Depends(get_db)):
     # Automatically create a default project for the newly registered merchant
     default_proj = Project(
         merchant_id=merchant.id,
-        name="My First Project",
+        name=payload.name,
         nomba_client_id=payload.nomba_client_id,
         nomba_client_secret_encrypted=payload.nomba_client_secret,
         nomba_account_id=payload.nomba_account_id

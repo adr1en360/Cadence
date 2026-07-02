@@ -50,7 +50,8 @@ def portal_page(sub_id: str, request: Request, token: str = None, db: Session = 
         "status": sub.status,
         "token_key": sub.token_key,
         "created_at": sub.created_at.strftime('%Y-%m-%d'),
-        "period_end": sub.current_period_end.strftime('%Y-%m-%d %H:%M')
+        "period_end": sub.current_period_end.strftime('%Y-%m-%d %H:%M'),
+        "cancel_at_period_end": sub.cancel_at_period_end
     }
     
     return templates.TemplateResponse(request=request, name="portal.html", context={
@@ -116,10 +117,27 @@ def cancel_portal_subscription(sub_id: str, token: str = None, db: Session = Dep
         raise HTTPException(status_code=404, detail="Subscription not found")
         
     validate_portal_token(sub, token)
+    
+    if sub.status == "cancelled":
+        raise HTTPException(status_code=400, detail="Subscription is already cancelled")
         
-    try:
-        BillingService.cancel_subscription(db, sub)
-        return {"status": "cancelled"}
-    except ValueError as e:
-        print(f"[PORTAL] Failed to cancel subscription {sub.id}: ValueError - {str(e)}")
-        raise HTTPException(status_code=400, detail="Subscription cannot be cancelled from its current state")
+    sub.cancel_at_period_end = True
+    db.add(sub)
+    db.commit()
+    return {"status": "cancel_at_period_end_set"}
+
+@router.post("/api/portal/{sub_id}/resume")
+def resume_portal_subscription(sub_id: str, token: str = None, db: Session = Depends(get_db)):
+    sub = db.query(Subscription).filter(Subscription.id == sub_id).first()
+    if not sub:
+        raise HTTPException(status_code=404, detail="Subscription not found")
+        
+    validate_portal_token(sub, token)
+    
+    if sub.status == "cancelled":
+        raise HTTPException(status_code=400, detail="Cannot resume a permanently cancelled subscription")
+        
+    sub.cancel_at_period_end = False
+    db.add(sub)
+    db.commit()
+    return {"status": "resumed"}

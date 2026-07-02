@@ -12,8 +12,14 @@ class DunningService:
     @staticmethod
     async def process_renewal(db: Session, subscription: Subscription) -> bool:
         """Attempt to charge the tokenized card for renewal."""
+        import json
+        
+        if subscription.cancel_at_period_end:
+            print(f"[DUNNING] Subscription {subscription.id} is scheduled for cancellation at period end. Cancelling now.")
+            BillingService.cancel_subscription(db, subscription)
+            return False
+
         if not subscription.token_key:
-            import json
             print(f"[DUNNING] No card token available for subscription: {subscription.id}")
             if subscription.status == "trialing":
                 BillingService.transition_state(db, subscription, "cancelled")

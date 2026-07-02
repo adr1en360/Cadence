@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, DateTime, Integer, ForeignKey
+from sqlalchemy import Column, String, DateTime, Integer, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 import uuid
 from datetime import datetime
@@ -21,6 +21,7 @@ class Subscription(Base):
     portal_token_expires_at = Column(DateTime, nullable=True)
     current_period_start = Column(DateTime, default=datetime.utcnow, nullable=False)
     current_period_end = Column(DateTime, nullable=False)
+    cancel_at_period_end = Column(Boolean, default=False, nullable=False)
     trial_end = Column(DateTime, nullable=True)
     retry_count = Column(Integer, default=0, nullable=False)
     next_retry_at = Column(DateTime, nullable=True)

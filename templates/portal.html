@@ -3,25 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Customer Billing Portal - Cadence</title>
+    <title>Customer Portal - {{ subscription.merchant_name }}</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-dark: #0a0b0d;
-            --bg-card: rgba(18, 20, 26, 0.95);
-            --border-color: rgba(255, 255, 255, 0.06);
-            --text-primary: #F3F4F6;
-            --text-secondary: #9CA3AF;
-            --primary: #FF6B00;
-            --primary-hover: #FF8533;
-            --success: #10B981;
-            --warning: #F59E0B;
-            --danger: #EF4444;
-            --font-main: 'Sora', sans-serif;
-            --font-title: 'Outfit', sans-serif;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --text-primary: #1a202c;
+            --text-secondary: #718096;
+            --border-color: #e2e8f0;
+            --primary-color: #5a67d8;
+            --primary-hover: #4c51bf;
+            --danger-color: #e53e3e;
+            --danger-hover: #c53030;
+            --success-color: #38a169;
+            --warning-color: #dd6b20;
+            --font-family: 'Inter', sans-serif;
+            --border-radius: 8px;
         }
 
         * {
@@ -31,345 +32,337 @@
         }
 
         body {
-            background-color: var(--bg-dark);
+            background-color: var(--bg-color);
             color: var(--text-primary);
-            font-family: var(--font-main);
-            height: 100vh;
-            overflow: hidden;
+            font-family: var(--font-family);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 640px;
+            margin: 0 auto;
+        }
+
+        .header {
+            margin-bottom: 2rem;
             display: flex;
             align-items: center;
-            justify-content: center;
-            padding: 1rem;
-        }
-
-        .portal-container {
-            width: 100%;
-            max-width: 480px; /* Thinned width */
-            animation: cardEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .portal-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 1.5rem; /* Reduced from 2.5rem */
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-            display: flex;
-            flex-direction: column;
-            gap: 1.15rem; /* Reduced from 1.75rem */
-        }
-
-        .portal-header {
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 0.85rem;
-        }
-
-        .plan-title {
-            font-family: var(--font-title);
-            font-size: 1.45rem; /* Reduced from 1.75rem */
-            font-weight: 700;
-            color: white;
-            margin-bottom: 0.15rem;
-            letter-spacing: -0.01em;
-        }
-
-        /* Card mockup visual - Minimalist style */
-        .credit-card-mockup {
-            width: 100%;
-            height: 140px; /* Reduced from 190px */
-            background: linear-gradient(135deg, #13151b 0%, #0d0e12 100%);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 10px;
-            padding: 1rem; /* Reduced from 1.5rem */
-            display: flex;
-            flex-direction: column;
             justify-content: space-between;
-            position: relative;
         }
 
-        .card-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
+        .merchant-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
         }
 
-        .card-chip {
-            width: 32px;
-            height: 24px;
-            background: linear-gradient(135deg, #ECC94B, #D69E2E);
-            border-radius: 4px;
-            position: relative;
-        }
-
-        .card-chip::after {
-            content: '';
-            position: absolute;
-            inset: 2px;
-            border: 1px solid rgba(0, 0, 0, 0.12);
-            border-radius: 2px;
-        }
-
-        .card-brand {
-            font-family: var(--font-title);
-            font-weight: 700;
-            font-size: 0.9rem;
-            color: white;
-            display: flex;
-            align-items: center;
-            gap: 0.3rem;
-        }
-
-        .card-number {
-            font-family: monospace;
-            font-size: 1.05rem; /* Reduced from 1.15rem */
-            color: #E5E7EB;
-            letter-spacing: 0.18em;
-            word-spacing: 0.18em;
-            margin: 0.35rem 0; /* Reduced from 1rem */
-        }
-
-        .card-bottom {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-        }
-
-        .card-holder {
-            display: flex;
-            flex-direction: column;
-            gap: 0.15rem;
-        }
-
-        .card-label {
-            font-size: 0.55rem;
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
+        .portal-title {
             color: var(--text-secondary);
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600;
         }
 
-        .card-value {
-            font-size: 0.75rem;
-            font-weight: 500;
-            color: white;
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+            margin-bottom: 1.5rem;
+            overflow: hidden;
         }
 
-        .card-status-dot {
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
-            display: inline-block;
+        .card-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        .card-status-dot.active {
-            background: var(--success);
+        .card-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
         }
 
-        .card-status-dot.inactive {
-            background: var(--danger);
+        .card-body {
+            padding: 1.5rem;
         }
 
-        /* Badges */
+        /* Status Badges */
         .badge {
             display: inline-flex;
             align-items: center;
-            padding: 0.2rem 0.5rem;
+            padding: 0.25rem 0.75rem;
             border-radius: 9999px;
-            font-size: 0.6rem;
+            font-size: 0.75rem;
             font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.04em;
+            letter-spacing: 0.025em;
         }
 
         .badge-active {
-            background: rgba(16, 185, 129, 0.1);
-            color: #34D399;
-            border: 1px solid rgba(16, 185, 129, 0.2);
+            background-color: #c6f6d5;
+            color: #22543d;
         }
 
         .badge-trialing {
-            background: rgba(96, 165, 250, 0.1);
-            color: #60A5FA;
-            border: 1px solid rgba(96, 165, 250, 0.2);
+            background-color: #bee3f8;
+            color: #2a4365;
         }
 
         .badge-past_due {
-            background: rgba(245, 158, 11, 0.1);
-            color: #FBBF24;
-            border: 1px solid rgba(245, 158, 11, 0.2);
+            background-color: #feebc8;
+            color: #7b341e;
         }
 
         .badge-cancelled {
-            background: rgba(239, 68, 68, 0.1);
-            color: #F87171;
-            border: 1px solid rgba(239, 68, 68, 0.2);
+            background-color: #fed7d7;
+            color: #822727;
+        }
+        
+        .badge-cancels-soon {
+            background-color: #fefcbf;
+            color: #744210;
         }
 
-        .detail-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 0.55rem 0; /* Reduced from 0.85rem */
-            font-size: 0.8rem; /* Reduced from 0.85rem */
-            border-bottom: 1px solid var(--border-color);
+        /* Plan Details */
+        .plan-price-block {
+            margin-bottom: 1.5rem;
         }
 
-        .detail-row:last-child {
-            border-bottom: none;
-        }
-
-        .detail-label {
-            color: var(--text-secondary);
-        }
-
-        .detail-value {
-            font-weight: 500;
+        .plan-price {
+            font-size: 2rem;
+            font-weight: 700;
             color: var(--text-primary);
+        }
+
+        .plan-interval {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .plan-description {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
         }
 
         /* Buttons */
         .btn {
-            background: linear-gradient(135deg, var(--primary), #FF5100);
-            color: white;
-            border: none;
-            padding: 0.55rem 1rem; /* Reduced from 0.7rem */
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-decoration: none;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.8rem; /* Reduced from 0.85rem */
-            font-family: var(--font-main);
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.15s ease-in-out;
+            border: 1px solid transparent;
+            font-family: inherit;
         }
 
-        .btn:hover {
-            filter: brightness(1.1);
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
         }
 
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid var(--border-color);
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border-color: var(--border-color);
             color: var(--text-primary);
         }
 
-        .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.05);
-            border-color: rgba(255, 255, 255, 0.12);
+        .btn-outline:hover {
+            background-color: #f7fafc;
+            border-color: #cbd5e0;
         }
 
-        .portal-actions {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
+        .btn-danger-outline {
+            background-color: transparent;
+            border-color: #feb2b2;
+            color: var(--danger-color);
+        }
+
+        .btn-danger-outline:hover {
+            background-color: #fff5f5;
+            border-color: #fc8181;
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Data Rows */
+        .data-list {
+            display: flex;
+            flex-direction: column;
             gap: 1rem;
-            margin-top: 0.5rem;
         }
 
-        @keyframes cardEnter {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.875rem;
         }
 
-        @media (max-width: 600px) {
-            .portal-actions {
-                grid-template-columns: 1fr;
-            }
-            .portal-card {
-                padding: 1.75rem;
-            }
+        .data-label {
+            color: var(--text-secondary);
+        }
+
+        .data-value {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .payment-method-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .card-icon {
+            width: 40px;
+            height: 26px;
+            background-color: #edf2f7;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+        }
+
+        .payment-info {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .payment-status {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
         }
     </style>
 </head>
 <body>
 
-<div class="portal-container">
-    <div class="portal-card">
-        <div class="portal-header">
-            <h2 class="plan-title">{{ subscription.plan_name }}</h2>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem;">
-                <span style="color: var(--text-secondary); font-size: 0.85rem;">Provider: <strong style="color: white;">{{ subscription.merchant_name }}</strong></span>
+<div class="container">
+    <div class="header">
+        <div class="merchant-name">{{ subscription.merchant_name }}</div>
+        <div class="portal-title">Billing Portal</div>
+    </div>
+
+    <!-- Current Plan Card -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Current Plan</h3>
+            {% if subscription.status == 'cancelled' %}
+                <span class="badge badge-cancelled">Cancelled</span>
+            {% elif subscription.cancel_at_period_end %}
+                <span class="badge badge-cancels-soon">Cancels Soon</span>
+            {% else %}
                 <span class="badge badge-{{ subscription.status }}">{{ subscription.status }}</span>
+            {% endif %}
+        </div>
+        <div class="card-body">
+            <div class="plan-price-block">
+                <span class="plan-price">₦{{ "{:,.2f}".format(subscription.plan_amount) }}</span>
+                <span class="plan-interval">/ {{ subscription.plan_interval }} Days</span>
+            </div>
+            
+            <div class="plan-description">
+                <p><strong>{{ subscription.plan_name }}</strong></p>
+                {% if subscription.status == 'cancelled' %}
+                    <p style="margin-top: 0.5rem; color: var(--danger-color);">Your subscription has been permanently cancelled.</p>
+                {% elif subscription.cancel_at_period_end %}
+                    <p style="margin-top: 0.5rem; color: var(--warning-color);">Your subscription will be cancelled on <strong>{{ subscription.period_end }}</strong>.</p>
+                {% else %}
+                    <p style="margin-top: 0.5rem;">Your next billing date is <strong>{{ subscription.period_end }}</strong>.</p>
+                {% endif %}
+            </div>
+
+            <div style="display: flex; gap: 0.75rem; margin-top: 2rem;">
+                {% if subscription.status != 'cancelled' %}
+                    {% if subscription.cancel_at_period_end %}
+                        <button id="resume-sub-btn" class="btn btn-primary">Resume Subscription</button>
+                    {% else %}
+                        <button id="cancel-sub-btn" class="btn btn-danger-outline">Cancel Subscription</button>
+                    {% endif %}
+                {% endif %}
             </div>
         </div>
+    </div>
 
-        <!-- Virtual Card mockup visual -->
-        <div class="credit-card-mockup">
-            <div class="card-top">
-                <div class="card-chip"></div>
-                <div class="card-brand">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="#FF6B00"/><path d="M2 17L12 22L22 17M2 12L17L22 12" stroke="#FF6B00"/></svg>
-                    <span>Cadence</span>
+    <!-- Payment Method Card -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Payment Method</h3>
+            {% if subscription.status != 'cancelled' %}
+                <button id="update-card-btn" class="btn btn-outline" style="padding: 0.25rem 0.75rem; font-size: 0.75rem;">Update</button>
+            {% endif %}
+        </div>
+        <div class="card-body">
+            <div class="payment-method-row">
+                <div class="card-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
                 </div>
-            </div>
-            <div class="card-middle">
-                <span class="card-number">•••• •••• •••• {% if subscription.token_key %}TOKEN{% else %}NONE{% endif %}</span>
-            </div>
-            <div class="card-bottom">
-                <div class="card-holder">
-                    <span class="card-label">Subscriber</span>
-                    <span class="card-value">{{ subscription.customer_name or 'N/A' }}</span>
-                </div>
-                <div class="card-holder" style="text-align: right;">
-                    <span class="card-label">Card Status</span>
-                    <span class="card-value" style="display: flex; align-items: center; gap: 0.35rem; justify-content: flex-end;">
+                <div class="payment-info">
+                    <span class="data-value">
                         {% if subscription.token_key %}
-                            <span class="card-status-dot active"></span> Active
+                            Stored Card ••••
                         {% else %}
-                            <span class="card-status-dot inactive"></span> Inactive
+                            No Card Stored
+                        {% endif %}
+                    </span>
+                    <span class="payment-status">
+                        {% if subscription.token_key %}
+                            Active for recurring billing
+                        {% else %}
+                            Action required
                         {% endif %}
                     </span>
                 </div>
             </div>
         </div>
+    </div>
 
-        <div>
-            <h3 style="font-family: var(--font-title); font-size: 1.05rem; font-weight: 700; margin-bottom: 0.75rem; color: var(--primary);">Subscription Details</h3>
-            
-            <div class="detail-row">
-                <span class="detail-label">Subscriber Email</span>
-                <span class="detail-value">{{ subscription.customer_email }}</span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Amount / Cycle</span>
-                <span class="detail-value" style="color: var(--primary);">₦{{ "{:,.2f}".format(subscription.plan_amount) }} / {{ subscription.plan_interval }} Days</span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Billing Start Date</span>
-                <span class="detail-value">{{ subscription.created_at }}</span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Next Charge Date</span>
-                <span class="detail-value" style="color: #fbbf24;">{{ subscription.period_end }}</span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Tokenized Card Payment</span>
-                <span class="detail-value">
-                    {% if subscription.token_key %}
-                        <span style="color: var(--success); display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 600;">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>
-                            Card Tokenized
-                        </span>
-                    {% else %}
-                        <span style="color: var(--warning);">No Card Tokenized</span>
-                    {% endif %}
-                </span>
-            </div>
+    <!-- Billing Details Card -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Billing Details</h3>
         </div>
-
-        <div class="portal-actions">
-            {% if subscription.status != 'cancelled' %}
-                <button id="update-card-btn" class="btn">Update Card</button>
-                <button id="cancel-sub-btn" class="btn btn-secondary" style="color: var(--danger);">Cancel Subscription</button>
-            {% else %}
-                <button class="btn btn-secondary" style="grid-column: 1 / -1; cursor: not-allowed;" disabled>Subscription Cancelled</button>
-            {% endif %}
+        <div class="card-body">
+            <div class="data-list">
+                <div class="data-row">
+                    <span class="data-label">Email</span>
+                    <span class="data-value">{{ subscription.customer_email }}</span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">Name</span>
+                    <span class="data-value">{{ subscription.customer_name or 'N/A' }}</span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">Customer Since</span>
+                    <span class="data-value">{{ subscription.created_at }}</span>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
     const subId = "{{ subscription.id }}";
-
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('token') || '';
 
@@ -393,9 +386,9 @@
         }
     });
  
-    // Cancel Subscription
+    // Cancel Subscription at period end
     document.getElementById("cancel-sub-btn")?.addEventListener("click", async () => {
-        if (!confirm("Are you sure you want to cancel your subscription immediately? This action is permanent.")) return;
+        if (!confirm("Are you sure you want to cancel? You will continue to have access until the end of your billing cycle.")) return;
         
         try {
             const resp = await fetch(`/api/portal/${subId}/cancel?token=${token}`, {
@@ -403,10 +396,31 @@
             });
             const data = await resp.json();
             if (resp.ok) {
-                alert("Subscription cancelled successfully.");
+                alert("Your subscription is set to cancel at the end of the billing period.");
                 window.location.reload();
             } else {
                 alert(data.detail || "Failed to cancel subscription");
+            }
+        } catch (err) {
+            console.error(err);
+            alert("An error occurred");
+        }
+    });
+
+    // Resume Subscription
+    document.getElementById("resume-sub-btn")?.addEventListener("click", async () => {
+        if (!confirm("Are you sure you want to resume your subscription?")) return;
+        
+        try {
+            const resp = await fetch(`/api/portal/${subId}/resume?token=${token}`, {
+                method: "POST"
+            });
+            const data = await resp.json();
+            if (resp.ok) {
+                alert("Your subscription has been successfully resumed.");
+                window.location.reload();
+            } else {
+                alert(data.detail || "Failed to resume subscription");
             }
         } catch (err) {
             console.error(err);
