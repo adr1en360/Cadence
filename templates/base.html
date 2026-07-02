@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Cadence Billing{% endblock %}</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -42,58 +43,17 @@
             position: relative;
         }
 
-        /* Subtle moving background blobs */
-        body::before {
-            content: '';
-            position: absolute;
-            top: -10%;
-            left: -10%;
-            width: 50%;
-            height: 60%;
-            background: radial-gradient(circle, rgba(255, 107, 0, 0.09) 0%, transparent 70%);
-            z-index: -1;
-            filter: blur(80px);
-            pointer-events: none;
-        }
-
-        body::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            right: 0;
-            width: 50%;
-            height: 60%;
-            background: radial-gradient(circle, rgba(16, 185, 129, 0.06) 0%, transparent 70%);
-            z-index: -1;
-            filter: blur(80px);
-            pointer-events: none;
-        }
-
-        /* Grid overlay */
-        .bg-grid {
-            position: absolute;
-            inset: 0;
-            background-image: linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
-                              linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
-            background-size: 40px 40px;
-            z-index: -1;
-            pointer-events: none;
-        }
-
         /* Glassmorphism card styles */
         .glass-card {
             background: var(--bg-card);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--border-color);
-            border-radius: 18px;
-            box-shadow: var(--card-glow);
-            transition: border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            transition: border-color 0.2s ease, transform 0.2s ease;
         }
 
         .glass-card:hover {
-            border-color: rgba(255, 107, 0, 0.2);
-            box-shadow: 0 10px 40px 0 rgba(255, 107, 0, 0.05), var(--card-glow);
+            border-color: rgba(255, 107, 0, 0.35);
         }
 
         header {
@@ -202,7 +162,7 @@
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1300px;
             margin: 2.5rem auto;
             padding: 0 2rem;
             flex: 1;
@@ -271,7 +231,6 @@
     {% block extra_head %}{% endblock %}
 </head>
 <body>
-    <div class="bg-grid"></div>
     <header>
         <div class="nav-container">
             <a href="/" class="logo">

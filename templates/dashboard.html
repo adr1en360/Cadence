@@ -284,6 +284,12 @@
         from { opacity: 0; }
         to { opacity: 1; }
     }
+
+    @media (max-width: 768px) {
+        .hide-mobile {
+            display: none !important;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -347,7 +353,7 @@
         <div id="overview" class="tab-content" style="display: block;">
             <div style="display: flex; flex-direction: column; gap: 2.25rem;">
                 <!-- Metrics Grid -->
-                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 1.5rem;">
                     <div class="glass-card metric-card">
                         <span style="color: var(--text-secondary); font-size: 0.75rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Active Subscribers</span>
                         <span class="metric-value" id="val-active-subs">0</span>
@@ -379,7 +385,7 @@
                                     <th>Customer</th>
                                     <th>Plan</th>
                                     <th>Status</th>
-                                    <th>Expires</th>
+                                    <th class="hide-mobile">Expires</th>
                                 </tr>
                             </thead>
                             <tbody id="quick-subs-body">
@@ -405,7 +411,7 @@
                                 <th>Plan Name</th>
                                 <th>Amount</th>
                                 <th>Billing Interval</th>
-                                <th>API Key Scope</th>
+                                <th class="hide-mobile">API Key Scope</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
@@ -430,9 +436,9 @@
                                 <th>Customer</th>
                                 <th>Plan</th>
                                 <th>Amount</th>
-                                <th>Scope Key</th>
+                                <th class="hide-tablet">Scope Key</th>
                                 <th>Status</th>
-                                <th>Expires</th>
+                                <th class="hide-tablet">Expires</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -449,7 +455,7 @@
                         <button class="btn btn-secondary" onclick="closeDetails()" style="font-size: 0.75rem; padding: 0.35rem 0.8rem;">Collapse Details</button>
                     </div>
                     
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem;">
                         <div>
                             <h4 style="font-size: 0.85rem; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 0.75rem; letter-spacing: 0.05em;">Payment Attempts (Refund Desk)</h4>
                             <div class="table-container">
@@ -459,7 +465,7 @@
                                             <th>Amount</th>
                                             <th>Status</th>
                                             <th>Ref / Txn ID</th>
-                                            <th>Created</th>
+                                            <th class="hide-mobile">Created</th>
                                             <th>Action</th>
                                         </tr>
                                     </thead>
@@ -475,7 +481,7 @@
                                         <tr>
                                             <th>Event Type</th>
                                             <th>Payload Details</th>
-                                            <th>Timestamp</th>
+                                            <th class="hide-mobile">Timestamp</th>
                                         </tr>
                                     </thead>
                                     <tbody id="details-events-body"></tbody>
@@ -529,12 +535,12 @@
                         <table>
                             <thead>
                                 <tr>
-                                    <th>Key Label</th>
-                                    <th>Key Prefix</th>
-                                    <th>Sub-Account Limit</th>
-                                    <th>Status</th>
-                                    <th>Created</th>
-                                    <th>Action</th>
+                                     <th>Key Label</th>
+                                     <th>Key Prefix</th>
+                                     <th class="hide-tablet">Sub-Account Limit</th>
+                                     <th>Status</th>
+                                     <th class="hide-tablet">Created</th>
+                                     <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody id="keys-table-body">
@@ -850,7 +856,7 @@
                     <td><strong style="color: white;">${p.name}</strong></td>
                     <td style="font-weight: 500; color: var(--primary);">₦${p.amount.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
                     <td>${p.interval_days} Days</td>
-                    <td style="color: var(--text-secondary); font-size: 0.75rem;">${p.api_key_label}</td>
+                    <td class="hide-mobile" style="color: var(--text-secondary); font-size: 0.75rem;">${p.api_key_label}</td>
                     <td><button class="btn btn-secondary" onclick="deletePlan('${p.id}')" style="padding: 0.3rem 0.7rem; font-size: 0.7rem; color: var(--danger); border-color: rgba(239, 68, 68, 0.15);">Archive</button></td>
                 </tr>
             `).join('') : `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary); padding: 1.5rem 0;">No plans active</td></tr>`;
@@ -861,9 +867,9 @@
                 <tr class="${k.is_active ? '' : 'key-revoked'}">
                     <td style="font-weight: 500;">${k.label}</td>
                     <td><code style="color: var(--primary); background: rgba(255, 107, 0, 0.05); padding: 0.2rem 0.45rem; border-radius: 6px; border: 1px solid rgba(255, 107, 0, 0.1); font-size: 0.75rem;">${k.prefix}...</code></td>
-                    <td style="color: var(--text-secondary); font-size: 0.75rem;">${k.nomba_sub_account_id || 'Main wallet'}</td>
+                    <td class="hide-tablet" style="color: var(--text-secondary); font-size: 0.75rem;">${k.nomba_sub_account_id || 'Main wallet'}</td>
                     <td>${k.is_active ? '<span class="badge-live">Live</span>' : '<span class="badge-revoked">Revoked</span>'}</td>
-                    <td style="color: var(--text-secondary); font-size: 0.75rem;">${new Date(k.created_at).toLocaleDateString()}</td>
+                    <td class="hide-tablet" style="color: var(--text-secondary); font-size: 0.75rem;">${new Date(k.created_at).toLocaleDateString()}</td>
                     <td>${k.is_active ? `<button class="btn btn-secondary" onclick="revokeKey('${k.id}')" style="padding: 0.3rem 0.7rem; font-size: 0.7rem; color: var(--danger); border-color: rgba(239, 68, 68, 0.15);">Revoke</button>` : '—'}</td>
                 </tr>
             `).join('') : `<tr><td colspan="6" style="text-align: center; color: var(--text-secondary); padding: 1.5rem 0;">No API keys generated</td></tr>`;
@@ -878,17 +884,17 @@
                 <tr>
                     <td>
                         <div style="font-weight: 600; color: white; font-size: 0.8rem;">${s.customer_name || 'N/A'}</div>
-                        <div style="font-size: 0.7rem; color: var(--text-secondary);">${s.customer_email}</div>
+                        <div style="font-size: 0.7rem; color: var(--text-secondary); word-break: break-all; max-width: 180px;">${s.customer_email}</div>
                     </td>
                     <td style="font-weight: 500; font-size: 0.8rem;">${s.plan_name}</td>
                     <td style="font-weight: 500; color: var(--primary); font-size: 0.8rem;">₦${s.plan_amount.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
-                    <td style="color: var(--text-secondary); font-size: 0.75rem;">${s.api_key_label}</td>
+                    <td class="hide-tablet" style="color: var(--text-secondary); font-size: 0.75rem;">${s.api_key_label}</td>
                     <td><span class="badge badge-${s.status}">${s.status}</span></td>
-                    <td style="color: var(--text-secondary); font-size: 0.75rem;">${new Date(s.period_end).toLocaleDateString()}</td>
+                    <td class="hide-tablet" style="color: var(--text-secondary); font-size: 0.75rem;">${new Date(s.period_end).toLocaleDateString()}</td>
                     <td>
-                        <div style="display: flex; gap: 0.5rem; align-items: center;">
-                            <button class="btn btn-secondary" onclick="showDetails('${s.id}')" style="padding: 0.35rem 0.6rem; font-size: 0.7rem;">Manage Logs</button>
-                            <button class="btn btn-secondary" onclick="generatePortalLink('${s.id}')" style="padding: 0.35rem 0.6rem; font-size: 0.7rem; color: var(--primary); border-color: rgba(255, 107, 0, 0.15);">Get Magic Link</button>
+                        <div style="display: flex; flex-direction: column; gap: 0.35rem; align-items: stretch; min-width: 100px;">
+                            <button class="btn btn-secondary" onclick="showDetails('${s.id}')" style="padding: 0.25rem 0.5rem; font-size: 0.7rem; width: 100%; text-align: center;">Logs</button>
+                            <button class="btn btn-secondary" onclick="generatePortalLink('${s.id}')" style="padding: 0.25rem 0.5rem; font-size: 0.7rem; color: var(--primary); border-color: rgba(255, 107, 0, 0.15); width: 100%; text-align: center;">Magic Link</button>
                         </div>
                     </td>
                 </tr>
@@ -901,11 +907,11 @@
                 <tr>
                     <td>
                         <div style="font-weight: 600; color: white; font-size: 0.8rem;">${s.customer_name || 'N/A'}</div>
-                        <div style="font-size: 0.7rem; color: var(--text-secondary);">${s.customer_email}</div>
+                        <div style="font-size: 0.7rem; color: var(--text-secondary); word-break: break-all; max-width: 180px;">${s.customer_email}</div>
                     </td>
                     <td style="font-size: 0.8rem;">${s.plan_name}</td>
                     <td><span class="badge badge-${s.status}">${s.status}</span></td>
-                    <td style="color: var(--text-secondary); font-size: 0.75rem;">${new Date(s.period_end).toLocaleDateString()}</td>
+                    <td class="hide-mobile" style="color: var(--text-secondary); font-size: 0.75rem;">${new Date(s.period_end).toLocaleDateString()}</td>
                 </tr>
             `).join('') : `<tr><td colspan="4" style="text-align: center; color: var(--text-secondary); padding: 1.5rem 0;">No subscriptions found</td></tr>`;
 
@@ -932,7 +938,7 @@
                     <div style="font-size: 0.75rem; color: white; font-family: monospace;">Ref: ${p.nomba_order_ref}</div>
                     ${p.nomba_transaction_id ? `<div style="font-size: 0.7rem; color: var(--text-secondary); font-family: monospace;">Txn ID: ${p.nomba_transaction_id}</div>` : ''}
                 </td>
-                <td style="color: var(--text-secondary); font-size: 0.75rem;">${new Date(p.created_at).toLocaleString()}</td>
+                <td class="hide-mobile" style="color: var(--text-secondary); font-size: 0.75rem;">${new Date(p.created_at).toLocaleString()}</td>
                 <td>
                     ${p.status === 'succeeded' ? `<button class="btn" onclick="refundPayment('${p.id}', '${subId}')" style="padding: 0.25rem 0.5rem; font-size: 0.65rem; color: var(--danger); border-color: rgba(239, 68, 68, 0.15); background: transparent;">Refund</button>` : '—'}
                 </td>
@@ -947,7 +953,7 @@
                 <td>
                     <pre style="font-family: monospace; font-size: 0.7rem; color: var(--text-secondary); margin: 0; white-space: pre-wrap; word-break: break-all;">${JSON.stringify(e.data, null, 2)}</pre>
                 </td>
-                <td style="color: var(--text-secondary); font-size: 0.75rem; white-space: nowrap;">${new Date(e.created_at).toLocaleString()}</td>
+                <td class="hide-mobile" style="color: var(--text-secondary); font-size: 0.75rem; white-space: nowrap;">${new Date(e.created_at).toLocaleString()}</td>
             </tr>
         `).join('') : `<tr><td colspan="3" style="text-align: center; color: var(--text-secondary); padding: 1rem 0;">No audit events logged</td></tr>`;
         

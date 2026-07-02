@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, Response
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from app.core.database import get_db
@@ -9,6 +9,14 @@ app = FastAPI(
     description="Managed subscription billing engine built on Nomba's payment APIs",
     version="0.1.0"
 )
+
+@app.get("/favicon.svg")
+def get_favicon():
+    svg_content = """<svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="#FF6B00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M2 17L12 22L22 17M2 12L12 17L22 12" stroke="#FF6B00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>"""
+    return Response(content=svg_content, media_type="image/svg+xml")
 
 # API Routers
 app.include_router(router_auth.router)
