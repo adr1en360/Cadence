@@ -114,3 +114,31 @@ The dashboard is the merchant's control panel. It is strictly an operations tool
 | **Subscriptions Desk** | Table of subscribers, emails, plans, current status, and next renewal dates. | - View subscriber history<br>- Cancel subscription immediately<br>- Trigger a manual refund on a payment<br>- Generate & copy a Portal Magic Link to email to a customer. |
 | **Audit Logs** | Real-time feed of events, cron executions, webhook requests, and payment attempts. | Search and filter logs by subscription ID or event type. |
 | **Project Settings** | API keys, active webhook endpoints. | - Generate/Revoke API keys<br>- Set/test Webhook destination URL. |
+
+---
+
+## 3. Production Deployment & Scheduler Setup
+
+### Deployment Stack
+* **Web Service:** Deployed on **Render** (free tier).
+* **Database:** Hosted on **Supabase** (PostgreSQL).
+* **Automated Cron Jobs:** Executed via **GitHub Actions** (to run renewals/dunning independently).
+
+### Webhook URL Configuration
+For Nomba to forward payment events (such as checkout success or renewal outcomes) to Cadence, you must submit your deployed webhook URL and test sub-account ID to the Nomba team:
+* **Webhook Endpoint:** `https://your-app-domain.onrender.com/webhooks/nomba`
+* **Sub-Account ID:** `7ccf96be-ce2c-435d-8ff8-496da5817a71`
+* **Webhook Signing Key:** `NombaHackathon2026` (configured locally/production via the `NOMBA_WEBHOOK_SECRET` environment variable).
+
+### GitHub Actions Dunning Scheduler
+To automate renewals and failed payment retries, a GitHub Actions workflow (`.github/workflows/dunning.yml`) runs the dunning cycle script every 15 minutes. 
+
+To enable this, go to your GitHub repository **Settings -> Secrets and variables -> Actions** and create the following Repository Secrets:
+* `DATABASE_URL`: Connection string to your production database. *Note: If your database password contains special characters like `%`, it is automatically escaped to `%%` by Alembic in `alembic/env.py` to prevent parser issues.*
+* `SECRET_KEY`: Secure random string for JWT sign/verification.
+* `ENVIRONMENT`: Deployment environment (e.g., `production`).
+* `NOMBA_CLIENT_ID`: Production Nomba Client ID.
+* `NOMBA_CLIENT_SECRET`: Production Nomba Client Secret.
+* `NOMBA_ACCOUNT_ID`: Production Nomba Parent Account ID.
+* `NOMBA_WEBHOOK_SECRET`: `NombaHackathon2026` (the signature key for verifying webhooks).
+
