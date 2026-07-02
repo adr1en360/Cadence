@@ -22,7 +22,7 @@ from app.models import metadata
 target_metadata = metadata
 
 # Set the database URL dynamically from settings
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+config.set_main_option("sqlalchemy.url", settings.DATABASE_URL.replace("%", "%%"))
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
