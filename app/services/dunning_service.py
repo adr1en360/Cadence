@@ -22,6 +22,39 @@ class DunningService:
                 db.commit()
             return False
 
+        # --- PRE-FLIGHT VERIFICATION RECOVERY ---
+        # Find any pending payment attempts from the current cycle
+        existing_pending = db.query(Payment).filter(
+            Payment.subscription_id == subscription.id,
+            Payment.status == "pending",
+            Payment.created_at >= subscription.current_period_start
+        ).first()
+
+        if existing_pending:
+            try:
+                print(f"[DUNNING] Pre-flight: Checking if pending payment {existing_pending.nomba_order_ref} succeeded downstream...")
+                verification = await nomba_client.verify_transaction(
+                    db,
+                    subscription.project,
+                    existing_pending.nomba_order_ref
+                )
+                code = verification.get("code")
+                data = verification.get("data", {}) or {}
+                status = data.get("status")
+                txn_id = data.get("transactionId")
+
+                if code == "00" or status == "SUCCESS":
+                    BillingService.process_payment_success(
+                        db,
+                        existing_pending.nomba_order_ref,
+                        txn_id
+                    )
+                    print(f"[DUNNING] Recovered successfully from prior uncommitted state. Subscription {subscription.id} advanced.")
+                    return True
+            except Exception as e:
+                print(f"[DUNNING] Pre-flight check failed: {e}. Continuing with renewal process...")
+        # --- END PRE-FLIGHT VERIFICATION ---
+
         plan = subscription.plan
         project = subscription.project
         order_ref = f"cadence_renew_{subscription.id[:8]}_{int(datetime.utcnow().timestamp())}"

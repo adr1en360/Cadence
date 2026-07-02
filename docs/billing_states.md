@@ -71,4 +71,13 @@ Every transition creates an `Event` record:
 | Subscriber cancels | `subscription.cancelled` | Active → Cancelled |
 | Card updated + charged | `subscription.reactivated` | Suspended → Active |
 
-_Last updated: 2026-06-30_
+---
+
+## Pre-Flight Verification & Recovery (Dual-Write Protection)
+
+To prevent double-charging a customer if a network timeout or local database crash occurs immediately after a successful charge but before the database transaction is committed:
+1. Before every charge attempt, the engine queries the database for any existing `pending` payment record generated in the current cycle.
+2. If found, the engine executes a pre-flight query to Nomba's requery API (`verify_transaction`).
+3. If Nomba confirms the payment succeeded downstream, Cadence bypasses executing a new charge, advances the subscription's `period_end` dates locally, and completes the state synchronization securely.
+
+_Last updated: 2026-07-02_

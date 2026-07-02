@@ -4,26 +4,16 @@ import os
 import sys
 import asyncio
 
-API_KEY = os.environ.get("CADENCE_API_KEY", "")
-if not API_KEY and len(sys.argv) > 1:
-    API_KEY = sys.argv[1]
-
-if not API_KEY:
-    print("Error: No CADENCE_API_KEY environment variable set or key passed as an argument.")
-    print("Usage: uv run python scripts/test_api_key.py <your_api_key>")
-    print("   or: CADENCE_API_KEY=your_key uv run python scripts/test_api_key.py")
-    sys.exit(1)
-
 BASE = "http://localhost:8000"
 
-async def main():
+async def main(api_key: str):
     async with httpx.AsyncClient(timeout=10) as client:
         # Test 1: List plans with API key
         print("=" * 50)
         print("TEST 1: GET /api/plans (API key auth)")
         print("=" * 50)
         try:
-            r = await client.get(f"{BASE}/api/plans", headers={"Authorization": f"Bearer {API_KEY}"})
+            r = await client.get(f"{BASE}/api/plans", headers={"Authorization": f"Bearer {api_key}"})
             print(f"  Status: {r.status_code}")
             print(f"  Body:   {r.text[:500]}")
         except Exception as e:
@@ -41,7 +31,7 @@ async def main():
                 "interval_days": 30,
                 "trial_days": 7
             }
-            r = await client.post(f"{BASE}/api/plans", headers={"Authorization": f"Bearer {API_KEY}", "Content-Type": "application/json"}, json=payload)
+            r = await client.post(f"{BASE}/api/plans", headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}, json=payload)
             print(f"  Status: {r.status_code}")
             print(f"  Body:   {r.text[:500]}")
         except Exception as e:
@@ -69,4 +59,15 @@ async def main():
         except Exception as e:
             print(f"  ERROR:  {e}")
 
-asyncio.run(main())
+if __name__ == "__main__":
+    api_key = os.environ.get("CADENCE_API_KEY", "")
+    if not api_key and len(sys.argv) > 1:
+        api_key = sys.argv[1]
+
+    if not api_key:
+        print("Error: No CADENCE_API_KEY environment variable set or key passed as an argument.")
+        print("Usage: uv run python scripts/test_api_key.py <your_api_key>")
+        print("   or: CADENCE_API_KEY=your_key uv run python scripts/test_api_key.py")
+        sys.exit(1)
+
+    asyncio.run(main(api_key))
