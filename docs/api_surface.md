@@ -128,7 +128,8 @@ Returns full subscription details including billing state, retry count, and toke
   "next_retry_at": null,
   "cancelled_at": null,
   "created_at": "2026-07-01T00:00:00",
-  "updated_at": "2026-07-01T12:00:00"
+  "updated_at": "2026-07-01T12:00:00",
+  "cancel_at_period_end": false
 }
 ```
 
@@ -136,13 +137,18 @@ Returns full subscription details including billing state, retry count, and toke
 
 ### `POST /api/subscriptions/{sub_id}/cancel` — Cancel Subscription
 
-Cancels the subscription. Only valid from `trialing`, `active`, or `suspended` states (see [billing_states.md](billing_states.md) for transition rules).
+Cancels the subscription. By default, this immediately terminates the subscription and transitions status to `cancelled`. You can optionally schedule the cancellation for the end of the current billing cycle by providing a JSON body.
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `cancel_at_period_end` | boolean | | If true, the subscription remains active until the end of the billing period, then cancels automatically. Default: false. |
 
 **Response:** `200 OK`
 ```json
 {
-  "message": "Subscription cancelled successfully",
-  "status": "cancelled"
+  "message": "Subscription scheduled to cancel at period end",
+  "status": "active",
+  "cancel_at_period_end": true
 }
 ```
 

@@ -90,7 +90,8 @@
   "token_key": "token_key_abc123xyz",
   "retry_count": 0,
   "next_retry_at": null,
-  "cancelled_at": null
+  "cancelled_at": null,
+  "cancel_at_period_end": false
 }</div>
     </div>
   </div>
@@ -103,18 +104,31 @@
       <span class="text-[#0D0D0D] font-semibold">/api/subscriptions/{subscription_id}/cancel</span>
     </div>
     <p class="text-[#6B6B6B]">
-      Immediately terminates a subscription and transitions status to <code>cancelled</code>.
+      Cancels a subscription. By default, cancellation is immediate. You can optionally schedule the cancellation for the end of the current billing cycle.
     </p>
 
-    <!-- Response JSON -->
-    <div class="rounded-xl overflow-hidden bg-[#1A1A1A] border border-[#1A1A1A] shadow-md max-w-2xl">
-      <div class="flex items-center justify-between px-4 py-2 bg-[#0D0D0D]/40 border-b border-solid border-[#1A1A1A] text-xs text-[#6B6B6B] font-mono">
-        <span>Response JSON (200 OK)</span>
-      </div>
-      <div class="p-4 font-mono text-xs text-[#F7F7F5] overflow-x-auto whitespace-pre">{
-  "message": "Subscription cancelled successfully",
-  "status": "cancelled"
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Request JSON -->
+      <div class="rounded-xl overflow-hidden bg-[#1A1A1A] border border-[#1A1A1A] shadow-md">
+        <div class="flex items-center justify-between px-4 py-2 bg-[#0D0D0D]/40 border-b border-solid border-[#1A1A1A] text-xs text-[#6B6B6B] font-mono">
+          <span>Request Body (JSON) - Optional</span>
+        </div>
+        <div class="p-4 font-mono text-xs text-[#F7F7F5] overflow-x-auto whitespace-pre">{
+  "cancel_at_period_end": true
 }</div>
+      </div>
+
+      <!-- Response JSON -->
+      <div class="rounded-xl overflow-hidden bg-[#1A1A1A] border border-[#1A1A1A] shadow-md">
+        <div class="flex items-center justify-between px-4 py-2 bg-[#0D0D0D]/40 border-b border-solid border-[#1A1A1A] text-xs text-[#6B6B6B] font-mono">
+          <span>Response JSON (200 OK)</span>
+        </div>
+        <div class="p-4 font-mono text-xs text-[#F7F7F5] overflow-x-auto whitespace-pre">{
+  "message": "Subscription scheduled to cancel at period end",
+  "status": "active",
+  "cancel_at_period_end": true
+}</div>
+      </div>
     </div>
   </div>
 </div>

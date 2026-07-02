@@ -594,8 +594,16 @@
 
                 document.getElementById("dash-welcome").innerText = `Welcome, ${sub.customer_name || 'Subscriber'}`;
                 document.getElementById("dash-email").innerText = sub.customer_email;
-                document.getElementById("dash-status").className = `badge badge-${sub.status}`;
-                document.getElementById("dash-status").innerText = sub.status;
+                if (sub.status === 'cancelled') {
+                    document.getElementById("dash-status").className = `badge badge-cancelled`;
+                    document.getElementById("dash-status").innerText = "CANCELLED";
+                } else if (sub.cancel_at_period_end) {
+                    document.getElementById("dash-status").className = `badge badge-warning`;
+                    document.getElementById("dash-status").innerText = "CANCELS SOON";
+                } else {
+                    document.getElementById("dash-status").className = `badge badge-${sub.status}`;
+                    document.getElementById("dash-status").innerText = sub.status;
+                }
                 document.getElementById("dash-plan-name").innerText = sub.plan_name;
                 document.getElementById("dash-plan-amount").innerText = `₦${sub.plan_amount.toLocaleString()}`;
                 document.getElementById("dash-period-end").innerText = new Date(sub.period_end).toLocaleDateString() + ' ' + new Date(sub.period_end).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });

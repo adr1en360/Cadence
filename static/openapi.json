@@ -327,6 +327,15 @@
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancelSubscriptionRequest"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -397,6 +406,17 @@
   },
   "components": {
     "schemas": {
+      "CancelSubscriptionRequest": {
+        "properties": {
+          "cancel_at_period_end": {
+            "type": "boolean",
+            "title": "Cancel At Period End",
+            "default": false
+          }
+        },
+        "type": "object",
+        "title": "CancelSubscriptionRequest"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {

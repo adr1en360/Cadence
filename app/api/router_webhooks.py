@@ -45,8 +45,9 @@ async def handle_nomba_webhook(request: Request, db: Session = Depends(get_db)):
             detail="Project owning this Nomba account not found in Cadence"
         )
         
-    # Use the decrypted/stored client secret as the HMAC key
-    secret_key = project.nomba_client_secret_encrypted or ""
+    # Use the configured webhook signing key as the HMAC key
+    from app.core.config import settings
+    secret_key = settings.NOMBA_WEBHOOK_SECRET
     
     # 4. Verify signature
     is_valid = verify_nomba_webhook(payload, headers, secret_key)

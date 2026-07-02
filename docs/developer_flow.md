@@ -53,8 +53,9 @@ sequenceDiagram
 
 ## 1. Developer Integration Steps
 
-### Step A: API Key & Authentication
-All API requests require a Bearer token generated inside the merchant dashboard:
+### Step A: Register & API Key
+First, create your merchant account at `/api/auth/register` (you must provide your `nomba_client_id`, `nomba_client_secret`, and `nomba_account_id`). 
+Then, all API requests require a Bearer token generated inside the merchant dashboard:
 ```http
 Authorization: Bearer cd_proj_123abc...
 ```

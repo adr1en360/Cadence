@@ -19,6 +19,9 @@ class SubscriptionCreateRequest(BaseModel):
     customer_name: Optional[str] = None
     callback_url: str  # Redirect destination after payment checkout completes
 
+class CancelSubscriptionRequest(BaseModel):
+    cancel_at_period_end: bool = False
+
 class SubscriptionResponse(BaseModel):
     id: str
     plan_id: str
@@ -119,15 +122,20 @@ def get_subscription(
         "next_retry_at": sub.next_retry_at.isoformat() if sub.next_retry_at else None,
         "cancelled_at": sub.cancelled_at.isoformat() if sub.cancelled_at else None,
         "created_at": sub.created_at.isoformat(),
-        "updated_at": sub.updated_at.isoformat()
+        "updated_at": sub.updated_at.isoformat(),
+        "cancel_at_period_end": sub.cancel_at_period_end
     }
 
 @router.post("/{sub_id}/cancel")
 def cancel_subscription(
     sub_id: str,
+    payload: CancelSubscriptionRequest = None,
     project: Project = Depends(get_project_by_api_key),
     db: Session = Depends(get_db)
 ):
+    if payload is None:
+        payload = CancelSubscriptionRequest()
+        
     sub = db.query(Subscription).filter(Subscription.id == sub_id, Subscription.project_id == project.id).first()
     if not sub:
         raise HTTPException(
@@ -136,8 +144,13 @@ def cancel_subscription(
         )
         
     try:
-        BillingService.cancel_subscription(db, sub)
-        return {"message": "Subscription cancelled successfully", "status": sub.status}
+        if payload.cancel_at_period_end:
+            sub.cancel_at_period_end = True
+            db.commit()
+            return {"message": "Subscription scheduled to cancel at period end", "status": sub.status, "cancel_at_period_end": True}
+        else:
+            BillingService.cancel_subscription(db, sub)
+            return {"message": "Subscription cancelled successfully", "status": sub.status, "cancel_at_period_end": False}
     except ValueError as e:
         print(f"[SUBSCRIPTIONS] Failed to cancel subscription {sub_id}: ValueError - {str(e)}")
         raise HTTPException(
