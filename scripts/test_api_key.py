@@ -1,9 +1,19 @@
 """Quick test: verify an API key works against the local server."""
 import httpx
+import os
 import sys
 import asyncio
 
-API_KEY = "cd_tEB9gm_tEB9gmyO81CTwy4w4G9zAyBAkMFVSXpSjd1V-z-l_OM"
+API_KEY = os.environ.get("CADENCE_API_KEY", "")
+if not API_KEY and len(sys.argv) > 1:
+    API_KEY = sys.argv[1]
+
+if not API_KEY:
+    print("Error: No CADENCE_API_KEY environment variable set or key passed as an argument.")
+    print("Usage: uv run python scripts/test_api_key.py <your_api_key>")
+    print("   or: CADENCE_API_KEY=your_key uv run python scripts/test_api_key.py")
+    sys.exit(1)
+
 BASE = "http://localhost:8000"
 
 async def main():
