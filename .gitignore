@@ -1,6 +1,7 @@
 # Environment
 .env
 *.env.local
+envprod
 
 # Python
 __pycache__/
