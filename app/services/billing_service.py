@@ -47,6 +47,19 @@ class BillingService:
         )
         db.add(event)
 
+        # Dispatch webhook to merchant
+        from app.services.webhook_dispatcher import dispatch_webhook
+        dispatch_webhook(
+            project=subscription.project,
+            event_type="subscription.status_updated",
+            data={
+                "subscription_id": subscription.id,
+                "old_state": old_state,
+                "new_state": new_state,
+                "customer_email": subscription.customer_email
+            }
+        )
+
     @staticmethod
     async def create_subscription(
         db: Session,
@@ -166,6 +179,20 @@ class BillingService:
         )
         db.add(event)
         
+        # Dispatch webhook to merchant
+        from app.services.webhook_dispatcher import dispatch_webhook
+        dispatch_webhook(
+            project=subscription.project,
+            event_type="payment.succeeded",
+            data={
+                "subscription_id": subscription.id,
+                "nomba_order_ref": nomba_order_ref,
+                "nomba_transaction_id": transaction_id,
+                "amount": float(payment.amount),
+                "customer_email": subscription.customer_email
+            }
+        )
+        
         db.commit()
         return subscription
 
@@ -200,6 +227,18 @@ class BillingService:
             })
         )
         db.add(event)
+
+        # Dispatch webhook to merchant
+        from app.services.webhook_dispatcher import dispatch_webhook
+        dispatch_webhook(
+            project=subscription.project,
+            event_type="payment.failed",
+            data={
+                "subscription_id": subscription.id,
+                "nomba_order_ref": nomba_order_ref,
+                "customer_email": subscription.customer_email
+            }
+        )
         
         db.commit()
         return subscription
@@ -222,4 +261,16 @@ class BillingService:
             })
         )
         db.add(event)
+
+        # Dispatch webhook to merchant
+        from app.services.webhook_dispatcher import dispatch_webhook
+        dispatch_webhook(
+            project=subscription.project,
+            event_type="subscription.cancelled",
+            data={
+                "subscription_id": subscription.id,
+                "customer_email": subscription.customer_email
+            }
+        )
+
         db.commit()

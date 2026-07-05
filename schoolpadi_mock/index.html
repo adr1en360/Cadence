@@ -13,16 +13,18 @@
     <style>
         :root {
             --bg-dark: #090b10;
-            --bg-card: rgba(17, 22, 32, 0.65);
-            --border-color: rgba(255, 255, 255, 0.06);
+            --bg-card: rgba(17, 22, 32, 0.72);
+            --border-color: rgba(255, 255, 255, 0.075);
             --text-primary: #F3F4F6;
             --text-secondary: #9CA3AF;
             --primary: #FF6B00;
             --primary-hover: #FF8533;
             --success: #10B981;
+            --warning: #F59E0B;
             --danger: #EF4444;
             --font-main: 'Sora', sans-serif;
             --font-title: 'Outfit', sans-serif;
+            --shadow-deep: 0 24px 70px rgba(0, 0, 0, 0.36);
         }
 
         * {
@@ -32,7 +34,10 @@
         }
 
         body {
-            background-color: var(--bg-dark);
+            background:
+                radial-gradient(circle at 15% -10%, rgba(255, 107, 0, 0.12), transparent 32rem),
+                radial-gradient(circle at 88% 12%, rgba(16, 185, 129, 0.08), transparent 28rem),
+                linear-gradient(180deg, #07080d 0%, var(--bg-dark) 44%, #07080d 100%);
             color: var(--text-primary);
             font-family: var(--font-main);
             min-height: 100vh;
@@ -44,6 +49,18 @@
             overflow-x: hidden;
         }
 
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px);
+            background-size: 36px 36px;
+            mask-image: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent 78%);
+        }
+
         .container {
             width: 100%;
             max-width: 960px;
@@ -53,6 +70,7 @@
         .header {
             text-align: center;
             margin-bottom: 2.5rem;
+            animation: riseIn 0.55s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .header h1 {
@@ -72,19 +90,23 @@
         }
 
         .glass-card {
-            background: var(--bg-card);
+            background: linear-gradient(145deg, rgba(20, 26, 38, 0.82), rgba(10, 13, 20, 0.72));
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--border-color);
-            border-radius: 18px;
+            border-radius: 22px;
             padding: 2rem;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+            box-shadow: var(--shadow-deep), inset 0 1px 0 rgba(255, 255, 255, 0.035);
             margin-bottom: 2rem;
-            transition: all 0.3s ease;
+            transition: border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+            position: relative;
+            overflow: hidden;
+            animation: riseIn 0.55s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .glass-card:hover {
-            border-color: rgba(255, 107, 0, 0.15);
+            border-color: rgba(255, 107, 0, 0.2);
+            box-shadow: 0 28px 82px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.04);
         }
 
         .section-title {
@@ -98,6 +120,8 @@
             gap: 0.5rem;
             border-bottom: 1px solid var(--border-color);
             padding-bottom: 0.75rem;
+            justify-content: space-between;
+            letter-spacing: -0.01em;
         }
 
         .form-group {
@@ -124,12 +148,14 @@
             font-family: inherit;
             font-size: 0.9rem;
             transition: all 0.2s ease;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.025);
         }
 
         .form-control:focus {
             outline: none;
             border-color: var(--primary);
             box-shadow: 0 0 0 2px rgba(255, 107, 0, 0.15);
+            background: rgba(255, 255, 255, 0.04);
         }
 
         .btn {
@@ -146,17 +172,24 @@
             align-items: center;
             justify-content: center;
             font-size: 0.9rem;
+            box-shadow: 0 12px 26px rgba(255, 107, 0, 0.18);
         }
 
         .btn:hover {
-            transform: translateY(-1px);
+            transform: translateY(-2px);
             filter: brightness(1.1);
+            box-shadow: 0 16px 34px rgba(255, 107, 0, 0.24);
+        }
+
+        .btn:active {
+            transform: translateY(0);
         }
 
         .btn-secondary {
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid var(--border-color);
             color: var(--text-primary);
+            box-shadow: none;
         }
 
         .btn-secondary:hover {
@@ -179,15 +212,17 @@
 
         .plan-card {
             border: 1px solid var(--border-color);
-            border-radius: 12px;
+            border-radius: 16px;
             padding: 1.5rem;
-            background: rgba(255, 255, 255, 0.01);
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.012));
             text-align: center;
-            transition: border-color 0.2s ease;
+            transition: border-color 0.2s ease, transform 0.2s ease, background 0.2s ease;
         }
 
         .plan-card:hover {
-            border-color: var(--primary);
+            border-color: rgba(255, 107, 0, 0.4);
+            transform: translateY(-3px);
+            background: linear-gradient(145deg, rgba(255, 107, 0, 0.075), rgba(255, 255, 255, 0.018));
         }
 
         .plan-name {
@@ -219,6 +254,8 @@
             font-size: 0.7rem;
             font-weight: 600;
             text-transform: uppercase;
+            letter-spacing: 0.04em;
+            white-space: nowrap;
         }
 
         .badge-active {
@@ -233,15 +270,89 @@
             border: 1px solid rgba(245, 158, 11, 0.2);
         }
 
+        .badge-warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: #FBBF24;
+            border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+
+        .badge-cancelled,
+        .badge-failed {
+            background: rgba(239, 68, 68, 0.1);
+            color: #F87171;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
         .alert-box {
-            background: rgba(255, 107, 0, 0.05);
-            border: 1px solid rgba(255, 107, 0, 0.15);
+            background: radial-gradient(circle at top left, rgba(255, 107, 0, 0.13), transparent 52%), rgba(255, 107, 0, 0.045);
+            border: 1px solid rgba(255, 107, 0, 0.18);
             padding: 1rem;
-            border-radius: 10px;
+            border-radius: 14px;
             margin-bottom: 1.25rem;
             font-size: 0.85rem;
             line-height: 1.5;
             color: #FFA366;
+        }
+
+        .flow-panel {
+            background: rgba(255, 255, 255, 0.018);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.25rem;
+        }
+
+        .dashboard-stat {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.012));
+            border: 1px solid var(--border-color);
+            padding: 1.25rem;
+            border-radius: 14px;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            padding: 1.5rem;
+            border: 1px dashed rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.012);
+        }
+
+        .webhook-log {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.012));
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 1rem 1rem 1rem 1.15rem;
+            position: relative;
+        }
+
+        .webhook-log::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 1rem;
+            bottom: 1rem;
+            width: 3px;
+            border-radius: 999px;
+            background: var(--primary);
+        }
+
+        .webhook-meta {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.55rem;
+            font-family: monospace;
+        }
+
+        .webhook-event {
+            font-size: 0.86rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 0.55rem;
+            font-family: monospace;
         }
 
         pre {
@@ -254,6 +365,31 @@
             color: #34d399;
             overflow-x: auto;
             max-height: 200px;
+        }
+
+        @keyframes riseIn {
+            from { opacity: 0; transform: translateY(14px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 760px) {
+            body {
+                padding: 1.25rem 0.75rem;
+            }
+            .header h1 {
+                font-size: 1.85rem;
+            }
+            .glass-card {
+                padding: 1.35rem;
+                border-radius: 18px;
+            }
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+            .section-title {
+                align-items: flex-start;
+                flex-direction: column;
+            }
         }
     </style>
 </head>
@@ -289,7 +425,11 @@
                         <input type="password" id="api-key" class="form-control" placeholder="cd_proj_..." required>
                     </div>
                 </div>
-                <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+                <div class="form-group" style="margin-top: 0.5rem;">
+                    <label>Webhook Signing Secret (Optional, to verify signatures)</label>
+                    <input type="password" id="webhook-secret" class="form-control" placeholder="whsec_...">
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1rem;">
                     <button type="submit" class="btn">Link API Key</button>
                 </div>
             </form>
@@ -306,14 +446,14 @@
             </div>
 
             <div id="plans-loading-placeholder"
-                style="text-align: center; padding: 1.5rem; color: var(--text-secondary);">
+                class="empty-state">
                 Loading billing plans from Cadence...
             </div>
 
             <div id="plans-container" class="plans-grid"></div>
 
             <div id="subscribe-form-box"
-                style="display: none; margin-top: 2rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+                class="flow-panel" style="display: none; margin-top: 2rem;">
                 <h3 style="font-family: var(--font-title); font-size: 1.1rem; font-weight: 700; color: white; margin-bottom: 1rem;"
                     id="selected-plan-title">Subscribe to</h3>
                 <form id="subscribe-form">
@@ -360,7 +500,7 @@
                     style="width: 100%; margin-bottom: 1rem;">Open Nomba Checkout &rarr;</a>
             </div>
 
-            <div style="border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+            <div class="flow-panel">
                 <h4
                     style="font-size: 0.85rem; font-weight: 600; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 1rem; letter-spacing: 0.05em;">
                     Simulation Sandbox Console</h4>
@@ -395,9 +535,8 @@
                 <span class="badge badge-active" id="dash-status">Active</span>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
-                <div
-                    style="background: rgba(255, 255, 255, 0.015); border: 1px solid var(--border-color); padding: 1.25rem; border-radius: 10px;">
+            <div class="grid-2" style="margin-bottom: 1.5rem;">
+                <div class="dashboard-stat">
                     <span
                         style="font-size: 0.7rem; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 0.05em;">Active
                         Plan</span>
@@ -406,8 +545,7 @@
                     <div style="font-size: 0.95rem; color: var(--primary); font-weight: 600; margin-top: 0.25rem;"
                         id="dash-plan-amount">₦2,000.00</div>
                 </div>
-                <div
-                    style="background: rgba(255, 255, 255, 0.015); border: 1px solid var(--border-color); padding: 1.25rem; border-radius: 10px;">
+                <div class="dashboard-stat">
                     <span
                         style="font-size: 0.7rem; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 0.05em;">Renewal
                         Cycle Target</span>
@@ -426,11 +564,32 @@
             </div>
         </div>
 
+        <!-- Step 5: Webhook Events Log -->
+        <div class="glass-card">
+            <div class="section-title" style="display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <path d="M22 12h-6l-3 9L9 3l-3 9H2" />
+                    </svg>
+                    4. Received Webhook Logs (Cadence &rarr; SchoolPadi)
+                </div>
+                <button class="btn btn-secondary" onclick="clearWebhooks()" style="font-size: 0.75rem; padding: 0.25rem 0.75rem; border-radius: 8px;">Clear Logs</button>
+            </div>
+            <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
+                When billing events occur, Cadence sends signed POST webhooks to this client at <code>http://localhost:8001/api/webhook</code>.
+            </p>
+            <div id="webhook-logs-container" style="max-height: 350px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.75rem;">
+                <div class="empty-state">
+                    No webhooks received yet. Try simulating subscription/payment actions.
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <script>
         // State variables
-        let config = { cadence_api_url: "http://localhost:8000", api_key: "" };
+        let config = { cadence_api_url: "http://localhost:8000", api_key: "", webhook_secret: "" };
         let currentSubscription = null;
 
         // Load Config on Startup
@@ -442,9 +601,11 @@
                     config = data;
                     document.getElementById("cadence-url").value = config.cadence_api_url;
                     document.getElementById("api-key").value = config.api_key;
+                    document.getElementById("webhook-secret").value = config.webhook_secret || "";
 
                     document.getElementById("checkout-section").style.display = "block";
                     loadPlans();
+                    fetchWebhookLogs();
                 }
             } catch (err) {
                 console.error(err);
@@ -456,15 +617,16 @@
             e.preventDefault();
             const cadence_api_url = document.getElementById("cadence-url").value;
             const api_key = document.getElementById("api-key").value;
+            const webhook_secret = document.getElementById("webhook-secret").value;
 
             try {
                 const resp = await fetch("/api/config", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ cadence_api_url, api_key })
+                    body: JSON.stringify({ cadence_api_url, api_key, webhook_secret })
                 });
                 if (resp.ok) {
-                    config = { cadence_api_url, api_key };
+                    config = { cadence_api_url, api_key, webhook_secret };
                     alert("API connection linked successfully!");
                     document.getElementById("checkout-section").style.display = "block";
                     loadPlans();
@@ -486,7 +648,7 @@
                 document.getElementById("plans-loading-placeholder").style.display = "none";
 
                 if (!plans.length) {
-                    container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-secondary);">No plans found. Please create plans on the Cadence dashboard first.</div>';
+                    container.innerHTML = '<div class="empty-state" style="grid-column: 1/-1;">No plans found. Please create plans on the Cadence dashboard first.</div>';
                     return;
                 }
 
@@ -642,6 +804,58 @@
             document.getElementById("checkout-section").style.display = "block";
             loadPlans();
         };
+
+        // Fetch and display webhook logs
+        const fetchWebhookLogs = async () => {
+            const container = document.getElementById("webhook-logs-container");
+            if (!container) return;
+            try {
+                const resp = await fetch("/api/webhooks");
+                if (!resp.ok) return;
+                const logs = await resp.json();
+
+                if (!logs.length) {
+                    container.innerHTML = '<div class="empty-state">No webhooks received yet. Try simulating subscription/payment actions.</div>';
+                    return;
+                }
+
+                container.innerHTML = logs.map(log => {
+                    let statusText = '<span style="color: #9CA3AF; font-size: 0.75rem;">Received, no secret</span>';
+                    if (log.verified === true) {
+                        statusText = '<span style="color: #34D399; font-size: 0.75rem; font-weight: bold;">Verified signature</span>';
+                    } else if (log.verified === false) {
+                        statusText = '<span style="color: #EF4444; font-size: 0.75rem; font-weight: bold;">Signature failed</span>';
+                    }
+                    return `
+                    <div class="webhook-log">
+                        <div class="webhook-meta">
+                            <span>${new Date(log.timestamp).toLocaleTimeString()}</span>
+                            <span>${statusText}</span>
+                        </div>
+                        <div class="webhook-event">
+                            Event: ${log.payload.event_type}
+                        </div>
+                        <pre style="max-height: 150px; font-size: 0.75rem; margin-top: 0.25rem;">${JSON.stringify(log.payload, null, 2)}</pre>
+                    </div>
+                    `;
+                }).reverse().join("");
+            } catch (err) {
+                console.error("Error fetching webhooks:", err);
+            }
+        };
+
+        // Clear Webhooks
+        window.clearWebhooks = async () => {
+            try {
+                await fetch("/api/webhooks/clear", { method: "POST" });
+                fetchWebhookLogs();
+            } catch (err) {
+                console.error(err);
+            }
+        };
+
+        // Start webhook polling
+        setInterval(fetchWebhookLogs, 3000);
 
         loadConfig();
     </script>

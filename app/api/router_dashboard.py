@@ -66,6 +66,15 @@ def list_projects(
     db: Session = Depends(get_db)
 ):
     projects = db.query(Project).filter(Project.merchant_id == merchant.id).all()
+    has_updates = False
+    for p in projects:
+        if not p.webhook_secret:
+            import secrets
+            p.webhook_secret = f"whsec_{secrets.token_hex(16)}"
+            db.add(p)
+            has_updates = True
+    if has_updates:
+        db.commit()
     return [
         {
             "id": p.id,
@@ -74,6 +83,7 @@ def list_projects(
             "nomba_account_id": p.nomba_account_id,
             "nomba_client_secret_configured": p.nomba_client_secret_encrypted is not None,
             "webhook_url": p.webhook_url,
+            "webhook_secret": p.webhook_secret,
             "created_at": p.created_at.isoformat()
         } for p in projects
     ]
@@ -88,9 +98,11 @@ def create_project(
     if not name or not name.strip():
         raise HTTPException(status_code=400, detail="Project name is required")
         
+    import secrets
     project = Project(
         merchant_id=merchant.id,
-        name=name.strip()
+        name=name.strip(),
+        webhook_secret=f"whsec_{secrets.token_hex(16)}"
     )
     db.add(project)
     db.commit()
@@ -116,7 +128,8 @@ def update_project_settings(
     if "nomba_client_id" in payload:
         project.nomba_client_id = payload["nomba_client_id"]
     if "nomba_client_secret" in payload:
-        project.nomba_client_secret_encrypted = payload["nomba_client_secret"]
+        from app.core.security import encrypt_credential
+        project.nomba_client_secret_encrypted = encrypt_credential(payload["nomba_client_secret"])
     if "nomba_account_id" in payload:
         project.nomba_account_id = payload["nomba_account_id"]
     if "webhook_url" in payload:
@@ -393,6 +406,20 @@ async def dashboard_refund_payment(
                 })
             )
             db.add(event)
+            
+            # Dispatch webhook to merchant
+            from app.services.webhook_dispatcher import dispatch_webhook
+            dispatch_webhook(
+                project=payment.project,
+                event_type="payment.refunded",
+                data={
+                    "payment_id": payment.id,
+                    "nomba_transaction_id": payment.nomba_transaction_id,
+                    "amount": float(payment.amount),
+                    "customer_email": payment.subscription.customer_email if payment.subscription else None
+                }
+            )
+            
             db.commit()
             return {"status": "refunded"}
         else:

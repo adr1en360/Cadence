@@ -43,6 +43,19 @@ class DunningService:
                     })
                 )
                 db.add(event)
+                
+                # Dispatch webhook to merchant
+                from app.services.webhook_dispatcher import dispatch_webhook
+                dispatch_webhook(
+                    project=subscription.project,
+                    event_type=event_type,
+                    data={
+                        "subscription_id": subscription.id,
+                        "reason": "token_key_missing",
+                        "customer_email": subscription.customer_email
+                    }
+                )
+                
                 db.add(subscription)
                 db.commit()
             return False

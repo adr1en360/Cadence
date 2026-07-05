@@ -195,9 +195,9 @@ These routes serve HTML pages and are accessed directly by the subscriber via th
 
 ## Webhooks (Cadence → Merchant)
 
-Cadence will forward billing events to merchant-configured webhook URLs. This is planned functionality.
+Cadence forwards billing events to merchant-configured webhook URLs. Configure the destination URL in the Merchant Dashboard project settings. Requests are sent as JSON with `Content-Type: application/json`; when a project has a webhook signing secret, Cadence includes an `X-Cadence-Signature` HMAC-SHA256 header generated from the compact JSON payload.
 
-### Planned Event Types
+### Event Types
 
 | Event | Fires When |
 |-------|------------|

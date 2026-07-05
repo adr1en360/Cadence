@@ -15,6 +15,14 @@ class NombaClient:
         client_secret = project.nomba_client_secret_encrypted
         account_id = project.nomba_account_id
         
+        if client_secret:
+            from app.core.security import decrypt_credential
+            try:
+                client_secret = decrypt_credential(client_secret)
+            except Exception as e:
+                # Fallback if secret was stored as plaintext in DB
+                print(f"[NOMBA] Decryption failed for client secret (using as plaintext): {e}")
+        
         # Fallback to default credentials if not configured on project (e.g. for default sandbox runs)
         if not client_id or not client_secret or not account_id:
             client_id = settings.NOMBA_CLIENT_ID

@@ -20,7 +20,8 @@ def load_config():
             pass
     return {
         "cadence_api_url": "http://localhost:8000",
-        "api_key": ""
+        "api_key": "",
+        "webhook_secret": ""
     }
 
 def save_config(config_data):
@@ -30,6 +31,7 @@ def save_config(config_data):
 class ConfigPayload(BaseModel):
     cadence_api_url: str
     api_key: str
+    webhook_secret: str = ""
 
 class SubscribePayload(BaseModel):
     plan_id: str
@@ -50,7 +52,8 @@ def get_config():
 def update_config(payload: ConfigPayload):
     config = {
         "cadence_api_url": payload.cadence_api_url.rstrip("/"),
-        "api_key": payload.api_key.strip()
+        "api_key": payload.api_key.strip(),
+        "webhook_secret": payload.webhook_secret.strip()
     }
     save_config(config)
     return {"status": "saved", "config": config}
@@ -153,6 +156,61 @@ async def simulate_payment_failed(payload: dict):
             return resp.json()
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to trigger test failed webhook: {str(e)}")
+
+# Webhook storage and endpoints
+webhook_events = []
+
+@app.post("/api/webhook")
+async def handle_cadence_webhook(request: Request):
+    from datetime import datetime
+    body = await request.body()
+    headers = dict(request.headers)
+    signature = headers.get("x-cadence-signature") or headers.get("X-Cadence-Signature")
+    
+    try:
+        payload = json.loads(body.decode("utf-8"))
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid JSON body")
+        
+    config = load_config()
+    webhook_secret = config.get("webhook_secret", "")
+    
+    verified = None
+    if webhook_secret and signature:
+        import hmac
+        import hashlib
+        # Reconstruct compact JSON body (separators without spaces) as signed by Cadence
+        compact_body = json.dumps(payload, separators=(',', ':'))
+        computed = hmac.new(
+            webhook_secret.encode("utf-8"),
+            compact_body.encode("utf-8"),
+            digestmod=hashlib.sha256
+        ).hexdigest()
+        verified = hmac.compare_digest(computed, signature)
+        
+    entry = {
+        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "payload": payload,
+        "signature": signature,
+        "verified": verified
+    }
+    
+    webhook_events.append(entry)
+    
+    if len(webhook_events) > 50:
+        webhook_events.pop(0)
+        
+    print(f"[SCHOOLPADI WEBHOOK] Received event: {payload.get('event_type')}. Signature verified: {verified}")
+    return {"status": "received"}
+
+@app.get("/api/webhooks")
+def get_webhook_events():
+    return webhook_events
+
+@app.post("/api/webhooks/clear")
+def clear_webhook_events():
+    webhook_events.clear()
+    return {"status": "cleared"}
 
 if __name__ == "__main__":
     import uvicorn

@@ -28,7 +28,7 @@
       Every webhook body sent by Cadence is signed using your merchant account's private Webhook Signing Secret. The signature is transmitted in the <code>X-Cadence-Signature</code> header.
     </p>
     <p class="text-[#6B6B6B] leading-relaxed">
-      To verify the payload is genuine, compute the HMAC-SHA256 hash of the raw request payload using your Webhook Secret:
+      To verify the payload is genuine, parse the JSON body and compute the HMAC-SHA256 hash of its compact JSON representation using your Webhook Secret:
     </p>
 
     <!-- Code Block -->
@@ -38,11 +38,17 @@
       </div>
       <div class="p-4 font-mono text-xs text-[#F7F7F5] overflow-x-auto whitespace-pre">import hmac
 import hashlib
+import json
 
 expected_sig = request.headers.get("X-Cadence-Signature")
+
+# Reconstruct the exact compact body layout signed by Cadence
+payload_dict = request.json()  # Parse request body as JSON dict
+compact_body = json.dumps(payload_dict, separators=(',', ':'))
+
 computed_sig = hmac.new(
     key=WEBHOOK_SECRET.encode("utf-8"),
-    msg=request.body,
+    msg=compact_body.encode("utf-8"),
     digestmod=hashlib.sha256
 ).hexdigest()
 

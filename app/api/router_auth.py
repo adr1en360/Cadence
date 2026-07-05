@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session
 from typing import Optional
+import secrets
 from app.core.database import get_db
 from app.core.security import hash_password, verify_password, create_access_token, generate_api_key_prefix_and_secret, encrypt_credential
 from app.api.deps import get_current_merchant
@@ -38,12 +39,13 @@ def register_merchant(payload: RegisterRequest, db: Session = Depends(get_db)):
         )
         
     try:
+        encrypted_client_secret = encrypt_credential(payload.nomba_client_secret) if payload.nomba_client_secret else None
         merchant = Merchant(
             name=payload.name,
             email=payload.email,
             password_hash=hash_password(payload.password),
             nomba_client_id=payload.nomba_client_id,
-            nomba_client_secret_encrypted=encrypt_credential(payload.nomba_client_secret) if payload.nomba_client_secret else None,
+            nomba_client_secret_encrypted=encrypted_client_secret,
             nomba_account_id=payload.nomba_account_id
         )
     except ImportError as e:
@@ -60,8 +62,9 @@ def register_merchant(payload: RegisterRequest, db: Session = Depends(get_db)):
         merchant_id=merchant.id,
         name=payload.name,
         nomba_client_id=payload.nomba_client_id,
-        nomba_client_secret_encrypted=payload.nomba_client_secret,
-        nomba_account_id=payload.nomba_account_id
+        nomba_client_secret_encrypted=encrypted_client_secret,
+        nomba_account_id=payload.nomba_account_id,
+        webhook_secret=f"whsec_{secrets.token_hex(16)}"
     )
     db.add(default_proj)
     db.commit()

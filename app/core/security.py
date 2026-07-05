@@ -92,6 +92,19 @@ def verify_nomba_webhook(
         # Check lowercase header just in case
         timestamp = headers.get("Nomba-Timestamp", "")
 
+    # Replay attack prevention check (log warning in sandbox/dev instead of strict rejection)
+    if timestamp:
+        try:
+            from datetime import datetime
+            ts_str = timestamp.replace("Z", "+00:00")
+            event_dt = datetime.fromisoformat(ts_str)
+            now = datetime.utcnow()
+            dt_diff = abs((now - event_dt.replace(tzinfo=None)).total_seconds())
+            if dt_diff > 300:
+                print(f"[SECURITY WARNING] Inbound Nomba webhook timestamp drift is too high: {dt_diff:.1f}s (potential replay attack)")
+        except Exception as e:
+            print(f"[SECURITY WARNING] Failed to parse webhook timestamp '{timestamp}': {e}")
+
     # Signing string:
     # {event_type}:{requestId}:{userId}:{walletId}:{transactionId}:{type}:{time}:{responseCode}:{nomba-timestamp}
     signing_string = f"{event_type}:{request_id}:{user_id}:{wallet_id}:{transaction_id}:{tx_type}:{time_val}:{response_code}:{timestamp}"

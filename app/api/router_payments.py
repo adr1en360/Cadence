@@ -68,6 +68,20 @@ async def refund_payment(
                 })
             )
             db.add(event)
+            
+            # Dispatch webhook to merchant
+            from app.services.webhook_dispatcher import dispatch_webhook
+            dispatch_webhook(
+                project=project,
+                event_type="payment.refunded",
+                data={
+                    "payment_id": payment.id,
+                    "nomba_transaction_id": payment.nomba_transaction_id,
+                    "amount": float(payment.amount),
+                    "customer_email": payment.subscription.customer_email if payment.subscription else None
+                }
+            )
+            
             db.commit()
             
             return {"message": "Payment refunded successfully", "status": "refunded"}
