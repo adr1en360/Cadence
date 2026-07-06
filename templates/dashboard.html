@@ -546,6 +546,30 @@
                 <div class="section-title">
                     <span>Subscriptions</span>
                 </div>
+
+                <!-- Filters and Search Bar -->
+                <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.5rem; background: rgba(255,255,255,0.015); border: 1px solid var(--border-color); padding: 1rem; border-radius: 12px;">
+                    <div style="flex: 1; min-width: 200px;">
+                        <input type="text" id="sub-filter-search" class="form-control" placeholder="Search Customer Name or Email..." style="font-size: 0.8rem; height: 36px; padding: 0 0.75rem; margin: 0; box-sizing: border-box;" oninput="onSubFilterChange()">
+                    </div>
+                    <div style="width: 150px; min-width: 120px;">
+                        <select id="sub-filter-status" class="form-control" style="font-size: 0.8rem; height: 36px; padding: 0 0.75rem; margin: 0; cursor: pointer; box-sizing: border-box; background-color: #121319;" onchange="onSubFilterChange()">
+                            <option value="">All Statuses</option>
+                            <option value="pending_payment">Pending Payment</option>
+                            <option value="active">Active</option>
+                            <option value="past_due">Past Due</option>
+                            <option value="cancelled">Cancelled</option>
+                            <option value="expired">Expired</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; min-width: 250px; flex-wrap: wrap;">
+                        <input type="date" id="sub-filter-start-date" class="form-control" style="font-size: 0.8rem; height: 36px; padding: 0 0.5rem; margin: 0; cursor: pointer; color: white; width: auto; max-width: 130px; box-sizing: border-box;" onchange="onSubFilterChange()" title="Start Date">
+                        <span style="font-size: 0.75rem; color: var(--text-secondary);">to</span>
+                        <input type="date" id="sub-filter-end-date" class="form-control" style="font-size: 0.8rem; height: 36px; padding: 0 0.5rem; margin: 0; cursor: pointer; color: white; width: auto; max-width: 130px; box-sizing: border-box;" onchange="onSubFilterChange()" title="End Date">
+                        <button class="btn btn-secondary" onclick="clearSubFilters()" style="font-size: 0.75rem; height: 36px; padding: 0 0.75rem; display: flex; align-items: center; justify-content: center; border-radius: 10px;" title="Reset Filters">Clear</button>
+                    </div>
+                </div>
+
                 <div class="table-container">
                     <table>
                         <thead>
@@ -1058,8 +1082,19 @@
                 </tr>
             `).join('') : `<tr><td colspan="6" style="text-align: center; color: var(--text-secondary); padding: 1.5rem 0;">No API keys generated</td></tr>`;
 
-            // Load Subscriptions
-            const subsResp = await fetch(`/api/dashboard/subscriptions${projectParam}`, { headers: authHeaders });
+            // Load Subscriptions (Filtered)
+            const statusVal = document.getElementById("sub-filter-status") ? document.getElementById("sub-filter-status").value : "";
+            const searchVal = document.getElementById("sub-filter-search") ? document.getElementById("sub-filter-search").value : "";
+            const startDateVal = document.getElementById("sub-filter-start-date") ? document.getElementById("sub-filter-start-date").value : "";
+            const endDateVal = document.getElementById("sub-filter-end-date") ? document.getElementById("sub-filter-end-date").value : "";
+            
+            let subsUrl = `/api/dashboard/subscriptions${projectParam}`;
+            if (statusVal) subsUrl += `&status=${encodeURIComponent(statusVal)}`;
+            if (searchVal) subsUrl += `&search=${encodeURIComponent(searchVal)}`;
+            if (startDateVal) subsUrl += `&start_date=${encodeURIComponent(startDateVal)}`;
+            if (endDateVal) subsUrl += `&end_date=${encodeURIComponent(endDateVal)}`;
+            
+            const subsResp = await fetch(subsUrl, { headers: authHeaders });
             allSubscriptionsData = await subsResp.json();
             
             // Full subscribers body
@@ -1083,10 +1118,12 @@
                     </td>
                 </tr>
             `).join('') : `<tr><td colspan="7" style="text-align: center; color: var(--text-secondary); padding: 1.5rem 0;">No subscriptions found</td></tr>`;
-
-            // Overview quick list (first 3)
+ 
+            // Overview quick list (first 3, unfiltered)
+            const overviewResp = await fetch(`/api/dashboard/subscriptions${projectParam}`, { headers: authHeaders });
+            const overviewSubs = await overviewResp.json();
             const quickBody = document.getElementById("quick-subs-body");
-            const quickSubs = allSubscriptionsData.slice(0, 3);
+            const quickSubs = overviewSubs.slice(0, 3);
             quickBody.innerHTML = quickSubs.length ? quickSubs.map(s => `
                 <tr>
                     <td>
@@ -1316,6 +1353,24 @@
             console.error(err);
             showToast("Error revoking key.", "error");
         }
+    };
+
+    window.onSubFilterChange = () => {
+        loadData();
+    };
+
+    window.clearSubFilters = () => {
+        const status = document.getElementById("sub-filter-status");
+        const search = document.getElementById("sub-filter-search");
+        const start = document.getElementById("sub-filter-start-date");
+        const end = document.getElementById("sub-filter-end-date");
+        
+        if (status) status.value = "";
+        if (search) search.value = "";
+        if (start) start.value = "";
+        if (end) end.value = "";
+        
+        loadData();
     };
 
     // Start by loading projects

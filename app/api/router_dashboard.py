@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from sqlalchemy import func
+from datetime import datetime, timedelta
 import json
 from typing import List, Optional
 from app.core.database import get_db
@@ -261,6 +262,10 @@ def delete_dashboard_plan(
 def list_dashboard_subscriptions(
     project_id: str,
     api_key_id: Optional[str] = None,
+    status: Optional[str] = None,
+    search: Optional[str] = None,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
     merchant: Merchant = Depends(get_current_merchant),
     db: Session = Depends(get_db)
 ):
@@ -271,7 +276,38 @@ def list_dashboard_subscriptions(
     query = db.query(Subscription).filter(Subscription.project_id == project.id)
     if api_key_id:
         query = query.join(Plan).filter(Plan.api_key_id == api_key_id)
-    subs = query.all()
+        
+    if status:
+        query = query.filter(Subscription.status == status)
+        
+    if search:
+        search_filter = f"%{search}%"
+        query = query.filter(
+            (Subscription.customer_name.ilike(search_filter)) | 
+            (Subscription.customer_email.ilike(search_filter))
+        )
+        
+    if start_date:
+        try:
+            if len(start_date) == 10:
+                parsed_start = datetime.strptime(start_date, "%Y-%m-%d")
+            else:
+                parsed_start = datetime.fromisoformat(start_date)
+            query = query.filter(Subscription.created_at >= parsed_start)
+        except Exception:
+            pass
+            
+    if end_date:
+        try:
+            if len(end_date) == 10:
+                parsed_end = datetime.strptime(end_date, "%Y-%m-%d") + timedelta(days=1) - timedelta(seconds=1)
+            else:
+                parsed_end = datetime.fromisoformat(end_date)
+            query = query.filter(Subscription.created_at <= parsed_end)
+        except Exception:
+            pass
+            
+    subs = query.order_by(Subscription.created_at.desc()).all()
     
     data = []
     for s in subs:
