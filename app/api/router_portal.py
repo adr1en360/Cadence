@@ -7,6 +7,7 @@ from app.models.subscription import Subscription
 from app.models.payment import Payment
 from app.services.billing_service import BillingService
 from app.core.nomba_client import nomba_client
+from app.core.config import settings
 
 router = APIRouter(tags=["Subscriber Portal"])
 templates = Jinja2Templates(directory="templates")
@@ -85,7 +86,7 @@ async def update_card(sub_id: str, token: str = None, db: Session = Depends(get_
         db.commit()
 
         # Build callback redirect URL back to portal page with token preserved
-        callback_url = f"http://localhost:8000/portal/{sub.id}?token={token}"
+        callback_url = f"{settings.BASE_URL}/portal/{sub.id}?token={token}"
         
         checkout_resp = await nomba_client.create_checkout_order(
             db=db,

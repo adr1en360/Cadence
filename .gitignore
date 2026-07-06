@@ -41,3 +41,4 @@ alembic/versions/*.pyc
 # Conversations (large)
 conversations.json
 extract_messages.ps1
+schoolpadi_mock/schoolpadi_config.json

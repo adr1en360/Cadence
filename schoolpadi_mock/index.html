@@ -425,9 +425,15 @@
                         <input type="password" id="api-key" class="form-control" placeholder="cd_proj_..." required>
                     </div>
                 </div>
-                <div class="form-group" style="margin-top: 0.5rem;">
-                    <label>Webhook Signing Secret (Optional, to verify signatures)</label>
-                    <input type="password" id="webhook-secret" class="form-control" placeholder="whsec_...">
+                <div class="grid-2" style="margin-top: 0.5rem;">
+                    <div class="form-group">
+                        <label>Webhook Signing Secret (Optional, to verify signatures)</label>
+                        <input type="password" id="webhook-secret" class="form-control" placeholder="whsec_...">
+                    </div>
+                    <div class="form-group">
+                        <label>Checkout Callback URL (Redirect after payment)</label>
+                        <input type="url" id="callback-url" class="form-control" placeholder="http://localhost:8001/checkout-success">
+                    </div>
                 </div>
                 <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1rem;">
                     <button type="submit" class="btn">Link API Key</button>
@@ -589,7 +595,7 @@
 
     <script>
         // State variables
-        let config = { cadence_api_url: "http://localhost:8000", api_key: "", webhook_secret: "" };
+        let config = { cadence_api_url: "http://localhost:8000", api_key: "", webhook_secret: "", callback_url: "http://localhost:8001/checkout-success" };
         let currentSubscription = null;
 
         // Load Config on Startup
@@ -602,6 +608,7 @@
                     document.getElementById("cadence-url").value = config.cadence_api_url;
                     document.getElementById("api-key").value = config.api_key;
                     document.getElementById("webhook-secret").value = config.webhook_secret || "";
+                    document.getElementById("callback-url").value = config.callback_url || "http://localhost:8001/checkout-success";
 
                     document.getElementById("checkout-section").style.display = "block";
                     loadPlans();
@@ -618,15 +625,16 @@
             const cadence_api_url = document.getElementById("cadence-url").value;
             const api_key = document.getElementById("api-key").value;
             const webhook_secret = document.getElementById("webhook-secret").value;
+            const callback_url = document.getElementById("callback-url").value;
 
             try {
                 const resp = await fetch("/api/config", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ cadence_api_url, api_key, webhook_secret })
+                    body: JSON.stringify({ cadence_api_url, api_key, webhook_secret, callback_url })
                 });
                 if (resp.ok) {
-                    config = { cadence_api_url, api_key, webhook_secret };
+                    config = { cadence_api_url, api_key, webhook_secret, callback_url };
                     alert("API connection linked successfully!");
                     document.getElementById("checkout-section").style.display = "block";
                     loadPlans();

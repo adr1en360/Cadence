@@ -21,7 +21,8 @@ def load_config():
     return {
         "cadence_api_url": "http://localhost:8000",
         "api_key": "",
-        "webhook_secret": ""
+        "webhook_secret": "",
+        "callback_url": "http://localhost:8001/checkout-success"
     }
 
 def save_config(config_data):
@@ -32,6 +33,7 @@ class ConfigPayload(BaseModel):
     cadence_api_url: str
     api_key: str
     webhook_secret: str = ""
+    callback_url: str = "http://localhost:8001/checkout-success"
 
 class SubscribePayload(BaseModel):
     plan_id: str
@@ -53,7 +55,8 @@ def update_config(payload: ConfigPayload):
     config = {
         "cadence_api_url": payload.cadence_api_url.rstrip("/"),
         "api_key": payload.api_key.strip(),
-        "webhook_secret": payload.webhook_secret.strip()
+        "webhook_secret": payload.webhook_secret.strip(),
+        "callback_url": payload.callback_url.strip()
     }
     save_config(config)
     return {"status": "saved", "config": config}
@@ -84,11 +87,12 @@ async def create_subscription(payload: SubscribePayload):
         "Authorization": f"Bearer {config['api_key']}",
         "Content-Type": "application/json"
     }
+    callback_url = config.get("callback_url", "http://localhost:8001/checkout-success")
     body = {
         "plan_id": payload.plan_id,
         "customer_email": payload.customer_email,
         "customer_name": payload.customer_name,
-        "callback_url": f"http://localhost:8001/checkout-success"  # Redirect back to SchoolPadi after Nomba pay
+        "callback_url": callback_url
     }
     
     async with httpx.AsyncClient() as client:

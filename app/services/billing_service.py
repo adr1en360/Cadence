@@ -9,6 +9,7 @@ from app.models.project import Project
 from app.core.nomba_client import nomba_client
 
 VALID_TRANSITIONS = {
+    "pending_payment": ["active", "cancelled"],
     "trialing":  ["active", "cancelled"],
     "active":    ["past_due", "cancelled", "expired", "suspended"],
     "past_due":  ["active", "suspended"],
@@ -83,7 +84,7 @@ class BillingService:
             plan_id=plan.id,
             customer_email=customer_email,
             customer_name=customer_name,
-            status="trialing" if has_trial else "active",
+            status="trialing" if has_trial else "pending_payment",
             trial_end=trial_end,
             current_period_start=current_period_start,
             current_period_end=current_period_end,
@@ -159,7 +160,7 @@ class BillingService:
         subscription.next_retry_at = None
         
         # Transition subscription back/to active status
-        if subscription.status in ["trialing", "past_due", "suspended"]:
+        if subscription.status in ["pending_payment", "trialing", "past_due", "suspended"]:
             BillingService.transition_state(db, subscription, "active")
         else:
             db.add(subscription)

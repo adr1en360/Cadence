@@ -12,6 +12,7 @@ from app.models.plan import Plan
 from app.models.subscription import Subscription
 from app.models.payment import Payment
 from app.models.event import Event
+from app.core.config import settings
 
 router = APIRouter(tags=["Merchant Dashboard"])
 templates = Jinja2Templates(directory="templates")
@@ -355,7 +356,7 @@ def dashboard_generate_portal_link(
     db.add(sub)
     db.commit()
     
-    portal_url = f"http://localhost:8000/portal/{sub.id}?token={token}"
+    portal_url = f"{settings.BASE_URL}/portal/{sub.id}?token={token}"
     return {
         "portal_url": portal_url,
         "expires_at": sub.portal_token_expires_at.isoformat()

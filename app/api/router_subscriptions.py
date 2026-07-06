@@ -10,6 +10,7 @@ from app.models.project import Project
 from app.models.plan import Plan
 from app.models.subscription import Subscription
 from app.services.billing_service import BillingService, VALID_TRANSITIONS
+from app.core.config import settings
 
 router = APIRouter(prefix="/api/subscriptions", tags=["Subscriptions"])
 
@@ -43,6 +44,18 @@ async def create_subscription(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Subscription Plan not found"
+        )
+        
+    existing_sub = db.query(Subscription).filter(
+        Subscription.project_id == project.id,
+        Subscription.plan_id == plan.id,
+        Subscription.customer_email == payload.customer_email,
+        Subscription.status.notin_(["cancelled", "expired", "pending_payment"])
+    ).first()
+    if existing_sub:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Customer already has an active subscription to this plan"
         )
         
     try:
@@ -178,7 +191,7 @@ def generate_portal_link(
     db.commit()
     
     # Generate tokenized magic URL
-    portal_url = f"http://localhost:8000/portal/{sub.id}?token={token}"
+    portal_url = f"{settings.BASE_URL}/portal/{sub.id}?token={token}"
     return {
         "portal_url": portal_url,
         "expires_at": sub.portal_token_expires_at.isoformat()
