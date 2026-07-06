@@ -15,9 +15,9 @@ class RegisterRequest(BaseModel):
     name: str
     email: EmailStr
     password: str
-    nomba_client_id: str
-    nomba_client_secret: str
-    nomba_account_id: str
+    nomba_client_id: Optional[str] = None
+    nomba_client_secret: Optional[str] = None
+    nomba_account_id: Optional[str] = None
 
 class LoginRequest(BaseModel):
     email: str
