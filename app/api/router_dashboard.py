@@ -125,16 +125,22 @@ def update_project_settings(
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
         
-    # Update settings
-    if "nomba_client_id" in payload:
-        project.nomba_client_id = payload["nomba_client_id"]
-    if "nomba_client_secret" in payload:
+    # Update Nomba credentials (only if provided and non-empty)
+    nomba_client_id = (payload.get("nomba_client_id") or "").strip()
+    nomba_client_secret = (payload.get("nomba_client_secret") or "").strip()
+    nomba_account_id = (payload.get("nomba_account_id") or "").strip()
+    
+    if nomba_client_id:
+        project.nomba_client_id = nomba_client_id
+    if nomba_client_secret and nomba_client_secret != "********":
         from app.core.security import encrypt_credential
-        project.nomba_client_secret_encrypted = encrypt_credential(payload["nomba_client_secret"])
-    if "nomba_account_id" in payload:
-        project.nomba_account_id = payload["nomba_account_id"]
-    if "webhook_url" in payload:
-        project.webhook_url = payload["webhook_url"]
+        project.nomba_client_secret_encrypted = encrypt_credential(nomba_client_secret)
+    if nomba_account_id:
+        project.nomba_account_id = nomba_account_id
+    
+    # Always update webhook_url (can be set or cleared)
+    webhook_url = (payload.get("webhook_url") or "").strip()
+    project.webhook_url = webhook_url if webhook_url else None
         
     db.add(project)
     db.commit()

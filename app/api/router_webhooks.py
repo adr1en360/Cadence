@@ -89,7 +89,7 @@ async def handle_nomba_webhook(request: Request, db: Session = Depends(get_db)):
     return {"status": "received"}
 
 @router.post("/test-success")
-def trigger_test_success_webhook(payload: dict, merchant: Merchant = Depends(get_current_merchant), db: Session = Depends(get_db)):
+def trigger_test_success_webhook(payload: dict, db: Session = Depends(get_db)):
     """Sandbox endpoint to simulate a successful payment webhook for a given order reference."""
     order_ref = payload.get("order_ref")
     transaction_id = payload.get("transaction_id", "test_txn_12345")
@@ -110,7 +110,7 @@ def trigger_test_success_webhook(payload: dict, merchant: Merchant = Depends(get
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.post("/test-failed")
-def trigger_test_failed_webhook(payload: dict, merchant: Merchant = Depends(get_current_merchant), db: Session = Depends(get_db)):
+def trigger_test_failed_webhook(payload: dict, db: Session = Depends(get_db)):
     """Sandbox endpoint to simulate a failed payment webhook for a given order reference."""
     order_ref = payload.get("order_ref")
     
@@ -125,3 +125,4 @@ def trigger_test_failed_webhook(payload: dict, merchant: Merchant = Depends(get_
         return {"status": "success", "message": "Simulation failed webhook triggered successfully"}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+

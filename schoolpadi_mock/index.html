@@ -788,9 +788,12 @@
                 if (resp.ok) {
                     alert("Simulated success webhook sent! Reloading subscription state...");
                     loadClientDashboard();
+                } else {
+                    const errData = await resp.json().catch(() => ({}));
+                    alert(`Simulation failed: ${errData.detail || resp.statusText}`);
                 }
             } catch (err) {
-                alert("Simulation failed");
+                alert("Simulation failed: " + err.message);
             }
         };
 
@@ -804,9 +807,12 @@
                 });
                 if (resp.ok) {
                     alert("Simulated failed webhook sent!");
+                } else {
+                    const errData = await resp.json().catch(() => ({}));
+                    alert(`Simulation failed: ${errData.detail || resp.statusText}`);
                 }
             } catch (err) {
-                alert("Simulation failed");
+                alert("Simulation failed: " + err.message);
             }
         };
 
