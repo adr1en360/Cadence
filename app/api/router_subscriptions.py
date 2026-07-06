@@ -48,14 +48,13 @@ async def create_subscription(
         
     existing_sub = db.query(Subscription).filter(
         Subscription.project_id == project.id,
-        Subscription.plan_id == plan.id,
         Subscription.customer_email == payload.customer_email,
         Subscription.status.notin_(["cancelled", "expired", "pending_payment"])
     ).first()
     if existing_sub:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="Customer already has an active subscription to this plan"
+            detail="Customer already has an active subscription in this project"
         )
         
     try:
