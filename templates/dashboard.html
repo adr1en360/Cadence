@@ -1168,7 +1168,12 @@
             });
             const data = await resp.json();
             if (resp.ok) {
-                prompt("Subscriber Portal Magic Link generated successfully. Copy it below:", data.portal_url);
+                navigator.clipboard.writeText(data.portal_url).then(() => {
+                    showToast("Portal Magic Link copied to clipboard!", "success");
+                }).catch(err => {
+                    console.error("Failed to copy link:", err);
+                    prompt("Subscriber Portal Magic Link generated successfully. Copy it below:", data.portal_url);
+                });
             } else {
                 showToast(data.detail || "Failed to generate magic link", "error");
             }
