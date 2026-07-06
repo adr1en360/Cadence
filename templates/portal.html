@@ -10,19 +10,19 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-color: #f7fafc;
+            --bg-color: #f8fafc;
             --card-bg: #ffffff;
-            --text-primary: #1a202c;
-            --text-secondary: #718096;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
             --border-color: #e2e8f0;
-            --primary-color: #5a67d8;
-            --primary-hover: #4c51bf;
-            --danger-color: #e53e3e;
-            --danger-hover: #c53030;
-            --success-color: #38a169;
-            --warning-color: #dd6b20;
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --danger-color: #ef4444;
+            --danger-hover: #dc2626;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
             --font-family: 'Inter', sans-serif;
-            --border-radius: 8px;
+            --border-radius: 12px;
         }
 
         * {
@@ -32,12 +32,13 @@
         }
 
         body {
-            background-color: var(--bg-color);
+            background: radial-gradient(circle at top right, #f1f5f9, var(--bg-color));
             color: var(--text-primary);
             font-family: var(--font-family);
             line-height: 1.5;
             -webkit-font-smoothing: antialiased;
-            padding: 2rem 1rem;
+            padding: 3rem 1rem;
+            min-height: 100vh;
         }
 
         .container {
@@ -46,32 +47,40 @@
         }
 
         .header {
-            margin-bottom: 2rem;
+            margin-bottom: 2.25rem;
             display: flex;
             align-items: center;
             justify-content: space-between;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem;
         }
 
         .merchant-name {
-            font-size: 1.25rem;
-            font-weight: 600;
+            font-size: 1.35rem;
+            font-weight: 700;
             color: var(--text-primary);
+            letter-spacing: -0.02em;
         }
 
         .portal-title {
             color: var(--text-secondary);
-            font-size: 0.875rem;
+            font-size: 0.85rem;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.07em;
             font-weight: 600;
         }
 
         .card {
             background: var(--card-bg);
             border-radius: var(--border-radius);
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.04), 0 4px 6px -2px rgba(0,0,0,0.02), 0 0 0 1px rgba(0,0,0,0.04);
             margin-bottom: 1.5rem;
             overflow: hidden;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        
+        .card:hover {
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.06), 0 10px 10px -5px rgba(0,0,0,0.03), 0 0 0 1px rgba(0,0,0,0.04);
         }
 
         .card-header {
@@ -363,6 +372,15 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- Elegant Subtle Branding Footer -->
+    <div style="display: flex; justify-content: center; align-items: center; gap: 0.5rem; margin-top: 3rem; margin-bottom: 2rem; opacity: 0.7; font-size: 0.8rem; color: var(--text-secondary);">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FF6B00" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2L2 7L12 12L22 7L12 2Z"/>
+            <path d="M2 17L12 22L22 17M2 12L12 17L22 12"/>
+        </svg>
+        <span>Securely powered by <a href="https://cadence-p0x6.onrender.com" target="_blank" style="color: var(--text-primary); text-decoration: none; font-weight: 600; border-bottom: 1px dashed var(--text-secondary); padding-bottom: 1px;">Cadence</a></span>
     </div>
 </div>
 
