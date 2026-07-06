@@ -165,11 +165,11 @@ def get_stats(
         Subscription.status == "active"
     )
     if api_key_id:
-        active_query = active_query.join(Plan).filter(Plan.api_key_id == api_key_id)
+        active_query = active_query.join(Plan, Subscription.plan_id == Plan.id).filter(Plan.api_key_id == api_key_id)
     active_count = active_query.count()
     
     # Calculate MRR
-    mrr_query = db.query(func.sum(Plan.amount)).join(Subscription).filter(
+    mrr_query = db.query(func.sum(Plan.amount)).join(Subscription, Subscription.plan_id == Plan.id).filter(
         Subscription.project_id == project.id,
         Subscription.status == "active"
     )
@@ -184,7 +184,7 @@ def get_stats(
         Payment.status == "succeeded"
     )
     if api_key_id:
-        total_query = total_query.join(Subscription).join(Plan).filter(Plan.api_key_id == api_key_id)
+        total_query = total_query.join(Subscription).join(Plan, Subscription.plan_id == Plan.id).filter(Plan.api_key_id == api_key_id)
     total_result = total_query.scalar()
     total_payments = float(total_result) if total_result else 0.0
     
@@ -276,7 +276,7 @@ def list_dashboard_subscriptions(
         
     query = db.query(Subscription).filter(Subscription.project_id == project.id)
     if api_key_id:
-        query = query.join(Plan).filter(Plan.api_key_id == api_key_id)
+        query = query.join(Plan, Subscription.plan_id == Plan.id).filter(Plan.api_key_id == api_key_id)
         
     if status:
         query = query.filter(Subscription.status == status)
