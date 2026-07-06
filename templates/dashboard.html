@@ -221,9 +221,57 @@
     .modal-content::-webkit-scrollbar-thumb {
         background: rgba(255, 107, 0, 0.3);
         border-radius: 10px;
-    }
+     }
     .modal-content::-webkit-scrollbar-thumb:hover {
         background: rgba(255, 107, 0, 0.5);
+    }
+
+    /* Toast Notification System */
+    #toast-container {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        pointer-events: none;
+    }
+
+    .toast {
+        min-width: 320px;
+        max-width: 420px;
+        background: rgba(20, 21, 28, 0.96);
+        border-left: 4px solid var(--primary);
+        color: #ffffff;
+        padding: 1rem 1.25rem;
+        border-radius: 12px;
+        box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.06);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        pointer-events: auto;
+        animation: toastSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        backdrop-filter: blur(12px);
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .toast-success { border-left-color: var(--success); }
+    .toast-error { border-left-color: var(--danger); }
+    .toast-warning { border-left-color: var(--warning); }
+    .toast-info { border-left-color: var(--primary); }
+
+    @keyframes toastSlideIn {
+        from {
+            transform: translateY(1.5rem) scale(0.95);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+        }
     }
 
     .form-group {
@@ -374,6 +422,7 @@
 {% endblock %}
 
 {% block content %}
+<div id="toast-container"></div>
 
 
 <!-- Onboarding / Connection Alert -->
@@ -722,6 +771,34 @@
 
 {% block extra_scripts %}
 <script>
+    function showToast(message, type = 'success') {
+        const container = document.getElementById('toast-container');
+        if (!container) return;
+        
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        
+        let icon = '';
+        if (type === 'success') {
+            icon = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>`;
+        } else if (type === 'error') {
+            icon = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>`;
+        } else if (type === 'warning') {
+            icon = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>`;
+        } else {
+            icon = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FF6B00" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`;
+        }
+        
+        toast.innerHTML = `${icon}<span>${message}</span>`;
+        container.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(-10px)';
+            setTimeout(() => toast.remove(), 300);
+        }, 4700);
+    }
+
     function togglePasswordVisibility(inputId, button) {
         const input = document.getElementById(inputId);
         const isPassword = input.type === 'password';
@@ -1082,18 +1159,9 @@
             // Using the project's active API Key to make the request mimics exactly how a developer would call it!
             const activeKey = allKeys.find(k => k.is_active);
             if (!activeKey) {
-                return alert("You must create at least one active API Key in the settings tab first to generate portal links.");
+                return showToast("You must create at least one active API Key in the settings tab first to generate portal links.", "warning");
             }
             
-            // Re-authenticate using the API Key
-            // Prefix + plain key mapping: wait! The API returns plain key ONLY once upon creation. In `allKeys` fetched from `/api-keys`, we only get prefix.
-            // Oh! We cannot construct the full key from prefix alone!
-            // Therefore, let's create a dashboard-session API endpoint on the backend or reuse a helper.
-            // Wait, does router_portal.py have a generate link? No, but we can generate the link directly or add a dashboard session endpoint!
-            // Wait, can we call a dashboard session-auth endpoint `/api/dashboard/subscriptions/${subId}/portal-link`?
-            // Yes! Let's expose this route in `router_dashboard.py` so the dashboard JS can easily generate links using the JWT session instead of requiring developer API keys!
-            // That is incredibly clean and prevents complexity. Let's make sure we add it to router_dashboard.py.
-            // Wait, we can implement it in the fetch call directly on router_dashboard.py, let's add it right away!
             const resp = await fetch(`/api/dashboard/subscriptions/${subId}/portal-link`, {
                 method: "POST",
                 headers: authHeaders
@@ -1102,11 +1170,11 @@
             if (resp.ok) {
                 prompt("Subscriber Portal Magic Link generated successfully. Copy it below:", data.portal_url);
             } else {
-                alert(data.detail || "Failed to generate magic link");
+                showToast(data.detail || "Failed to generate magic link", "error");
             }
         } catch(err) {
             console.error(err);
-            alert("Error generating portal link");
+            showToast("Error generating portal link", "error");
         }
     };
 
@@ -1114,30 +1182,29 @@
     const refundPayment = async (paymentId, subId) => {
         if (!confirm("Are you sure you want to refund this payment? This will call Nomba APIs to return funds to the customer card and mark the payment as refunded. Proceed?")) return;
         try {
-            // Let's call the dashboard session-auth refund route
             const resp = await fetch(`/api/dashboard/payments/${paymentId}/refund`, {
                 method: "POST",
                 headers: authHeaders
             });
             const data = await resp.json();
             if (resp.ok) {
-                alert("Payment refunded successfully.");
+                showToast("Payment refunded successfully.", "success");
                 // Reload details pane and statistics
                 await loadData();
                 showDetails(subId);
             } else {
-                alert(data.detail || "Refund failed.");
+                showToast(data.detail || "Refund failed.", "error");
             }
         } catch(err) {
             console.error(err);
-            alert("Error processing refund.");
+            showToast("Error processing refund.", "error");
         }
     };
 
     // Create Plan
     document.getElementById("plan-form").addEventListener("submit", async (e) => {
         e.preventDefault();
-        if (!activeProject) return alert("Select a project first.");
+        if (!activeProject) return showToast("Select a project first.", "warning");
 
         const payload = {
             project_id: activeProject.id,
@@ -1157,13 +1224,15 @@
             if (resp.ok) {
                 closeModal("plan-modal");
                 document.getElementById("plan-form").reset();
+                showToast("Plan created successfully!", "success");
                 loadData();
             } else {
                 const data = await resp.json();
-                alert(data.detail || "Failed to create plan");
+                showToast(data.detail || "Failed to create plan", "error");
             }
         } catch (err) {
             console.error(err);
+            showToast("Error creating plan.", "error");
         }
     });
 
@@ -1176,17 +1245,22 @@
                 headers: authHeaders
             });
             if (resp.ok) {
+                showToast("Plan archived successfully.", "success");
                 loadData();
+            } else {
+                const data = await resp.json();
+                showToast(data.detail || "Failed to archive plan", "error");
             }
         } catch (err) {
             console.error(err);
+            showToast("Error archiving plan.", "error");
         }
     };
 
     // Generate API Key
     document.getElementById("key-form").addEventListener("submit", async (e) => {
         e.preventDefault();
-        if (!activeProject) return alert("Select a project first.");
+        if (!activeProject) return showToast("Select a project first.", "warning");
 
         const label = document.getElementById("key-label").value;
         const subAccountId = document.getElementById("key-sub-account").value || null;
@@ -1207,12 +1281,14 @@
                 document.getElementById("key-submit-btn").style.display = "none";
                 document.getElementById("key-label").disabled = true;
                 document.getElementById("key-sub-account").disabled = true;
+                showToast("API key generated successfully!", "success");
                 loadData();
             } else {
-                alert(data.detail || "Failed to generate key");
+                showToast(data.detail || "Failed to generate key", "error");
             }
         } catch (err) {
             console.error(err);
+            showToast("Error generating key.", "error");
         }
     });
 
@@ -1225,24 +1301,37 @@
                 headers: authHeaders
             });
             if (resp.ok) {
+                showToast("API key revoked successfully.", "success");
                 loadData();
+            } else {
+                const data = await resp.json();
+                showToast(data.detail || "Failed to revoke key", "error");
             }
         } catch (err) {
             console.error(err);
+            showToast("Error revoking key.", "error");
         }
     };
 
     // Start by loading projects
     loadProjects();
 
+    // Auto-refresh dashboard data every 10 seconds to keep stats and logs in real-time
+    setInterval(() => {
+        if (activeProject) {
+            loadData();
+        }
+    }, 10000);
+
     // Copy Webhook Signing Secret
     window.copyWebhookSecret = () => {
         const val = document.getElementById("settings-webhook-secret").value;
         if (!val || val === "Not generated yet") return;
         navigator.clipboard.writeText(val).then(() => {
-            alert("Webhook signing secret copied to clipboard!");
+            showToast("Webhook signing secret copied to clipboard!", "success");
         }).catch(err => {
             console.error("Failed to copy secret:", err);
+            showToast("Failed to copy secret.", "error");
         });
     };
 </script>
