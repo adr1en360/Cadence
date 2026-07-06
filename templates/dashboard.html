@@ -1220,7 +1220,6 @@
                 showToast("Please select a plan to schedule.", "warning");
                 return;
             }
-            if (!confirm(`Are you sure you want to schedule a switch for this subscriber? The change will execute automatically at their next renewal.`)) return;
             
             try {
                 const resp = await fetch(`/api/dashboard/subscriptions/${sub.id}/change-plan`, {
@@ -1242,8 +1241,6 @@
         });
         
         newCancelBtn.addEventListener("click", async () => {
-            if (!confirm("Are you sure you want to cancel the scheduled plan switch?")) return;
-            
             try {
                 const resp = await fetch(`/api/dashboard/subscriptions/${sub.id}/change-plan`, {
                     method: "POST",
@@ -1336,7 +1333,6 @@
 
     // Trigger payment refund from dashboard
     const refundPayment = async (paymentId, subId) => {
-        if (!confirm("Are you sure you want to refund this payment? This will call Nomba APIs to return funds to the customer card and mark the payment as refunded. Proceed?")) return;
         try {
             const resp = await fetch(`/api/dashboard/payments/${paymentId}/refund`, {
                 method: "POST",
@@ -1394,7 +1390,6 @@
 
     // Delete/Archive Plan
     const deletePlan = async (id) => {
-        if (!confirm("Are you sure you want to archive this plan?")) return;
         try {
             const resp = await fetch(`/api/dashboard/plans/${id}`, {
                 method: "DELETE",
@@ -1450,7 +1445,6 @@
 
     // Revoke Key
     const revokeKey = async (id) => {
-        if (!confirm("Are you sure you want to revoke this API key? This action cannot be undone and all requests using this key will be rejected.")) return;
         try {
             const resp = await fetch(`/api/auth/api-keys/${id}`, {
                 method: "DELETE",
