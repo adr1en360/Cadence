@@ -441,6 +441,13 @@
                         <input type="url" id="callback-url" class="form-control" placeholder="http://localhost:8001/checkout-success">
                     </div>
                 </div>
+                <div class="grid-2" style="margin-top: 0.5rem;">
+                    <div class="form-group">
+                        <label>SchoolPadi Webhook URL (For Cadence events)</label>
+                        <input type="url" id="webhook-url" class="form-control" placeholder="http://localhost:8001/api/webhook">
+                    </div>
+                    <div></div>
+                </div>
                 <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1rem;">
                     <button type="submit" class="btn">Link API Key</button>
                 </div>
@@ -588,7 +595,7 @@
                 <button class="btn btn-secondary" onclick="clearWebhooks()" style="font-size: 0.75rem; padding: 0.25rem 0.75rem; border-radius: 8px;">Clear Logs</button>
             </div>
             <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
-                When billing events occur, Cadence sends signed POST webhooks to this client at <code>http://localhost:8001/api/webhook</code>.
+                When billing events occur, Cadence sends signed POST webhooks to this client at <code id="webhook-url-display">http://localhost:8001/api/webhook</code>.
             </p>
             <div id="webhook-logs-container" style="max-height: 350px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.75rem;">
                 <div class="empty-state">
@@ -601,7 +608,7 @@
 
     <script>
         // State variables
-        let config = { cadence_api_url: "http://localhost:8000", api_key: "", webhook_secret: "", callback_url: "http://localhost:8001/checkout-success" };
+        let config = { cadence_api_url: "http://localhost:8000", api_key: "", webhook_secret: "", callback_url: "http://localhost:8001/checkout-success", webhook_url: "http://localhost:8001/api/webhook" };
         let currentSubscription = null;
 
         // Load Config on Startup
@@ -615,6 +622,8 @@
                     document.getElementById("api-key").value = config.api_key;
                     document.getElementById("webhook-secret").value = config.webhook_secret || "";
                     document.getElementById("callback-url").value = config.callback_url || "http://localhost:8001/checkout-success";
+                    document.getElementById("webhook-url").value = config.webhook_url || "http://localhost:8001/api/webhook";
+                    document.getElementById("webhook-url-display").innerText = config.webhook_url || "http://localhost:8001/api/webhook";
 
                     document.getElementById("checkout-section").style.display = "block";
                     loadPlans();
@@ -632,15 +641,17 @@
             const api_key = document.getElementById("api-key").value;
             const webhook_secret = document.getElementById("webhook-secret").value;
             const callback_url = document.getElementById("callback-url").value;
+            const webhook_url = document.getElementById("webhook-url").value;
 
             try {
                 const resp = await fetch("/api/config", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ cadence_api_url, api_key, webhook_secret, callback_url })
+                    body: JSON.stringify({ cadence_api_url, api_key, webhook_secret, callback_url, webhook_url })
                 });
                 if (resp.ok) {
-                    config = { cadence_api_url, api_key, webhook_secret, callback_url };
+                    config = { cadence_api_url, api_key, webhook_secret, callback_url, webhook_url };
+                    document.getElementById("webhook-url-display").innerText = webhook_url || "http://localhost:8001/api/webhook";
                     alert("API connection linked successfully!");
                     document.getElementById("checkout-section").style.display = "block";
                     loadPlans();

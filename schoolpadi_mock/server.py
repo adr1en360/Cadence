@@ -22,7 +22,8 @@ def load_config():
         "cadence_api_url": "http://localhost:8000",
         "api_key": "",
         "webhook_secret": "",
-        "callback_url": "http://localhost:8001/checkout-success"
+        "callback_url": "http://localhost:8001/checkout-success",
+        "webhook_url": "http://localhost:8001/api/webhook"
     }
 
 def save_config(config_data):
@@ -34,6 +35,7 @@ class ConfigPayload(BaseModel):
     api_key: str
     webhook_secret: str = ""
     callback_url: str = "http://localhost:8001/checkout-success"
+    webhook_url: str = "http://localhost:8001/api/webhook"
 
 class SubscribePayload(BaseModel):
     plan_id: str
@@ -46,6 +48,79 @@ def index_page(request: Request):
     with open(index_path, "r", encoding="utf-8") as f:
         return f.read()
 
+@app.get("/checkout-success", response_class=HTMLResponse)
+def checkout_success_page(request: Request):
+    html_content = """
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Payment Successful - SchoolPadi</title>
+        <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;800&family=Sora:wght@400;600&display=swap" rel="stylesheet">
+        <style>
+            body {
+                background: #090b10;
+                color: #F3F4F6;
+                font-family: 'Sora', sans-serif;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                min-height: 100vh;
+                margin: 0;
+            }
+            .card {
+                background: rgba(17, 22, 32, 0.72);
+                border: 1px solid rgba(255, 255, 255, 0.075);
+                border-radius: 22px;
+                padding: 3rem;
+                text-align: center;
+                max-width: 450px;
+                box-shadow: 0 24px 70px rgba(0, 0, 0, 0.36);
+            }
+            h1 {
+                font-family: 'Outfit', sans-serif;
+                font-size: 2rem;
+                font-weight: 800;
+                color: #10B981;
+                margin-bottom: 1rem;
+            }
+            p {
+                color: #9CA3AF;
+                font-size: 0.95rem;
+                line-height: 1.5;
+                margin-bottom: 2rem;
+            }
+            .btn {
+                background: linear-gradient(135deg, #FF6B00, #FF5100);
+                color: white;
+                padding: 0.8rem 1.8rem;
+                border-radius: 10px;
+                text-decoration: none;
+                font-weight: 600;
+                font-size: 0.9rem;
+                display: inline-block;
+                box-shadow: 0 12px 26px rgba(255, 107, 0, 0.18);
+            }
+            .icon {
+                font-size: 4rem;
+                margin-bottom: 1rem;
+                display: block;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="card">
+            <span class="icon">🎉</span>
+            <h1>Payment Successful!</h1>
+            <p>Your payment checkout has been completed. You can now close this tab and return to the SchoolPadi simulation hub to test webhook updates.</p>
+            <a href="/" class="btn">Return to SchoolPadi</a>
+        </div>
+    </body>
+    </html>
+    """
+    return html_content
+
 @app.get("/api/config")
 def get_config():
     return load_config()
@@ -56,7 +131,8 @@ def update_config(payload: ConfigPayload):
         "cadence_api_url": payload.cadence_api_url.rstrip("/"),
         "api_key": payload.api_key.strip(),
         "webhook_secret": payload.webhook_secret.strip(),
-        "callback_url": payload.callback_url.strip()
+        "callback_url": payload.callback_url.strip(),
+        "webhook_url": payload.webhook_url.strip()
     }
     save_config(config)
     return {"status": "saved", "config": config}
@@ -87,7 +163,7 @@ async def create_subscription(payload: SubscribePayload):
         "Authorization": f"Bearer {config['api_key']}",
         "Content-Type": "application/json"
     }
-    callback_url = config.get("callback_url", "http://localhost:8001/checkout-success")
+    callback_url = config.get("callback_url") or "http://localhost:8001/checkout-success"
     body = {
         "plan_id": payload.plan_id,
         "customer_email": payload.customer_email,
