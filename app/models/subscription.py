@@ -13,6 +13,7 @@ class Subscription(Base):
     id = Column(String, primary_key=True, default=generate_uuid)
     project_id = Column(String, ForeignKey("projects.id"), nullable=False)
     plan_id = Column(String, ForeignKey("plans.id"), nullable=False)
+    pending_plan_id = Column(String, ForeignKey("plans.id"), nullable=True)
     customer_email = Column(String, index=True, nullable=False)
     customer_name = Column(String, nullable=True)
     status = Column(String, default="active", nullable=False)  # trialing, active, past_due, suspended, cancelled, expired
@@ -30,6 +31,7 @@ class Subscription(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     project = relationship("Project", back_populates="subscriptions")
-    plan = relationship("Plan", back_populates="subscriptions")
+    plan = relationship("Plan", foreign_keys=[plan_id], back_populates="subscriptions")
+    pending_plan = relationship("Plan", foreign_keys=[pending_plan_id])
     payments = relationship("Payment", back_populates="subscription", cascade="all, delete-orphan")
     events = relationship("Event", back_populates="subscription", cascade="all, delete-orphan")

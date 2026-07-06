@@ -1,5 +1,6 @@
 import asyncio
 import httpx
+import json
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 from app.models.subscription import Subscription
@@ -12,8 +13,18 @@ class DunningService:
     @staticmethod
     async def process_renewal(db: Session, subscription: Subscription) -> bool:
         """Attempt to charge the tokenized card for renewal."""
-        import json
-        
+        # Check if there is a scheduled plan change (upgrade/downgrade at period end)
+        if subscription.pending_plan_id:
+            from app.models.plan import Plan
+            new_plan = db.query(Plan).filter(Plan.id == subscription.pending_plan_id).first()
+            if new_plan:
+                print(f"[DUNNING] Swapping subscription {subscription.id} from plan {subscription.plan_id} to pending plan {new_plan.id} at renewal.")
+                subscription.plan_id = new_plan.id
+                subscription.pending_plan_id = None
+                db.add(subscription)
+                db.commit()
+                db.refresh(subscription)
+
         if subscription.cancel_at_period_end:
             print(f"[DUNNING] Subscription {subscription.id} is scheduled for cancellation at period end. Cancelling now.")
             BillingService.cancel_subscription(db, subscription)

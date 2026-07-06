@@ -45,6 +45,7 @@ def portal_page(sub_id: str, request: Request, token: str = None, db: Session = 
         "customer_name": sub.customer_name,
         "customer_email": sub.customer_email,
         "merchant_name": sub.project.name, # Use Project name as provider name
+        "plan_id": sub.plan_id,
         "plan_name": sub.plan.name,
         "plan_amount": float(sub.plan.amount),
         "plan_interval": int(sub.plan.interval_days),
@@ -52,11 +53,27 @@ def portal_page(sub_id: str, request: Request, token: str = None, db: Session = 
         "token_key": sub.token_key,
         "created_at": sub.created_at.strftime('%Y-%m-%d'),
         "period_end": sub.current_period_end.strftime('%Y-%m-%d %H:%M'),
-        "cancel_at_period_end": sub.cancel_at_period_end
+        "cancel_at_period_end": sub.cancel_at_period_end,
+        "pending_plan_id": sub.pending_plan_id,
+        "pending_plan_name": sub.pending_plan.name if sub.pending_plan_id and sub.pending_plan else None
     }
     
+    from app.models.plan import Plan
+    available_plans = db.query(Plan).filter(
+        Plan.project_id == sub.project_id,
+        Plan.is_active == True
+    ).all()
+    
+    plans_data = [{
+        "id": p.id,
+        "name": p.name,
+        "amount": float(p.amount),
+        "interval_days": int(p.interval_days)
+    } for p in available_plans]
+    
     return templates.TemplateResponse(request=request, name="portal.html", context={
-        "subscription": subscription_data
+        "subscription": subscription_data,
+        "available_plans": plans_data
     })
 
 @router.post("/api/portal/{sub_id}/update-card")
@@ -142,3 +159,38 @@ def resume_portal_subscription(sub_id: str, token: str = None, db: Session = Dep
     db.add(sub)
     db.commit()
     return {"status": "resumed"}
+
+@router.post("/api/portal/{sub_id}/change-plan")
+def portal_change_plan(sub_id: str, token: str = None, plan_id: str = None, db: Session = Depends(get_db)):
+    sub = db.query(Subscription).filter(Subscription.id == sub_id).first()
+    if not sub:
+        raise HTTPException(status_code=404, detail="Subscription not found")
+        
+    validate_portal_token(sub, token)
+    
+    from app.models.plan import Plan
+    if not plan_id:
+        # If no plan_id is provided, treat it as clearing any pending changes
+        sub.pending_plan_id = None
+        db.add(sub)
+        db.commit()
+        return {"status": "cleared", "message": "Pending plan switch cancelled"}
+        
+    new_plan = db.query(Plan).filter(Plan.id == plan_id, Plan.project_id == sub.project_id, Plan.is_active == True).first()
+    if not new_plan:
+        raise HTTPException(status_code=404, detail="Selected plan not found or inactive")
+        
+    if plan_id == sub.plan_id:
+        sub.pending_plan_id = None
+        db.add(sub)
+        db.commit()
+        return {"status": "cleared", "message": "Pending plan switch cancelled"}
+        
+    sub.pending_plan_id = plan_id
+    db.add(sub)
+    db.commit()
+    return {
+        "status": "scheduled",
+        "pending_plan_name": new_plan.name,
+        "message": f"Your plan will switch to {new_plan.name} at the end of the current billing cycle."
+    }

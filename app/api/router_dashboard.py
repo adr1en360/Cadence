@@ -3,6 +3,7 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from datetime import datetime, timedelta
+from pydantic import BaseModel
 import json
 from typing import List, Optional
 from app.core.database import get_db
@@ -326,6 +327,8 @@ def list_dashboard_subscriptions(
             "api_key_label": s.plan.api_key.label if s.plan.api_key else "Direct / No Key",
             "period_start": s.current_period_start.isoformat(),
             "period_end": s.current_period_end.isoformat(),
+            "pending_plan_id": s.pending_plan_id,
+            "pending_plan_name": s.pending_plan.name if s.pending_plan_id and s.pending_plan else None,
             "payments": [
                 {
                     "id": p.id,
@@ -402,6 +405,45 @@ def dashboard_generate_portal_link(
     return {
         "portal_url": portal_url,
         "expires_at": sub.portal_token_expires_at.isoformat()
+    }
+
+class DashboardChangePlanRequest(BaseModel):
+    plan_id: Optional[str] = None
+
+@router.post("/api/dashboard/subscriptions/{sub_id}/change-plan")
+def dashboard_change_plan(
+    sub_id: str,
+    payload: DashboardChangePlanRequest,
+    merchant: Merchant = Depends(get_current_merchant),
+    db: Session = Depends(get_db)
+):
+    sub = db.query(Subscription).join(Project).filter(Subscription.id == sub_id, Project.merchant_id == merchant.id).first()
+    if not sub:
+        raise HTTPException(status_code=404, detail="Subscription not found")
+        
+    if not payload.plan_id:
+        sub.pending_plan_id = None
+        db.add(sub)
+        db.commit()
+        return {"status": "cleared", "message": "Pending plan switch cancelled"}
+        
+    new_plan = db.query(Plan).filter(Plan.id == payload.plan_id, Plan.project_id == sub.project_id, Plan.is_active == True).first()
+    if not new_plan:
+        raise HTTPException(status_code=404, detail="Selected plan not found or inactive")
+        
+    if payload.plan_id == sub.plan_id:
+        sub.pending_plan_id = None
+        db.add(sub)
+        db.commit()
+        return {"status": "cleared", "message": "Pending plan switch cancelled"}
+        
+    sub.pending_plan_id = payload.plan_id
+    db.add(sub)
+    db.commit()
+    return {
+        "status": "scheduled",
+        "pending_plan_name": new_plan.name,
+        "message": f"Subscription plan switch to {new_plan.name} scheduled for end of period."
     }
 
 @router.post("/api/dashboard/payments/{payment_id}/refund")

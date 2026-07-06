@@ -111,6 +111,8 @@ async def test_integration():
         print(f"  Checkout Link: {checkout_link[:60]}...")
         
         # Validate state machine transition logic
+        print("[*] Transitioning pending_payment -> active...")
+        BillingService.transition_state(db, subscription, "active")
         print("[*] Testing state transition validations (active -> past_due)...")
         BillingService.transition_state(db, subscription, "past_due")
         db.commit()

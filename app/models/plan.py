@@ -23,4 +23,4 @@ class Plan(Base):
 
     project = relationship("Project", back_populates="plans")
     api_key = relationship("APIKey", back_populates="plans")
-    subscriptions = relationship("Subscription", back_populates="plan", cascade="all, delete-orphan")
+    subscriptions = relationship("Subscription", foreign_keys="[Subscription.plan_id]", back_populates="plan", cascade="all, delete-orphan")

@@ -597,6 +597,32 @@
                     </div>
                     
                     <div style="display: flex; flex-direction: column; gap: 2.25rem;">
+                        <!-- Merchant Action Controls -->
+                        <div id="details-merchant-controls" style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); padding: 1.25rem; border-radius: 8px; display: flex; flex-direction: column; gap: 1rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                                <div>
+                                    <div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Active Plan</div>
+                                    <div id="details-active-plan-name" style="font-weight: 600; color: white;">—</div>
+                                </div>
+                                <div id="details-pending-switch-block" style="display: none;">
+                                    <div style="font-size: 0.75rem; color: #f59e0b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Pending Switch</div>
+                                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                        <span id="details-pending-plan-name" style="font-weight: 600; color: #f59e0b;">—</span>
+                                        <button id="details-cancel-switch-btn" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.7rem; color: var(--danger); border-color: rgba(239, 68, 68, 0.15); margin: 0;">Cancel Switch</button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div id="details-switch-actions" style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 1rem;">
+                                <div style="flex: 1; min-width: 200px;">
+                                    <select id="details-plan-select" class="form-control" style="width: 100%; height: 36px; font-size: 0.8rem; border-radius: 6px; padding: 0 0.5rem; background: var(--card-bg); border: 1px solid var(--border-color); color: white;">
+                                        <option value="">Schedule plan switch...</option>
+                                    </select>
+                                </div>
+                                <button id="details-schedule-switch-btn" class="btn btn-primary" style="height: 36px; padding: 0 1rem; font-size: 0.8rem; border-radius: 6px; display: flex; align-items: center; margin: 0; background: var(--primary); border: none; color: white;">Schedule Switch</button>
+                            </div>
+                        </div>
+
                         <div>
                             <h4 style="font-size: 0.85rem; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 0.75rem; letter-spacing: 0.05em;">Payment Attempts (Refund Desk)</h4>
                             <div class="table-container">
@@ -866,6 +892,7 @@
     let activeProject = null;
     let allKeys = [];
     let allSubscriptionsData = [];
+    let allPlansData = [];
 
     // Logout
     document.getElementById("logout-btn").addEventListener("click", (e) => {
@@ -1058,6 +1085,7 @@
             // Load Plans
             const plansResp = await fetch(`/api/dashboard/plans${projectParam}`, { headers: authHeaders });
             const plans = await plansResp.json();
+            allPlansData = plans;
             const plansBody = document.getElementById("plans-table-body");
             plansBody.innerHTML = plans.length ? plans.map(p => `
                 <tr>
@@ -1149,6 +1177,92 @@
         document.getElementById("subscriber-details-pane").style.display = "block";
         document.getElementById("details-customer-title").innerText = `Logs & Control for ${sub.customer_name || 'Subscriber'} (${sub.customer_email})`;
         
+        // Populate Merchant Controls (Plan Switching)
+        document.getElementById("details-active-plan-name").innerText = `${sub.plan_name} (₦${sub.plan_amount.toLocaleString('en-US', {minimumFractionDigits: 2})})`;
+        
+        const pendingBlock = document.getElementById("details-pending-switch-block");
+        if (sub.pending_plan_name) {
+            pendingBlock.style.display = "block";
+            document.getElementById("details-pending-plan-name").innerText = sub.pending_plan_name;
+        } else {
+            pendingBlock.style.display = "none";
+        }
+        
+        // Populate Plan Dropdown Select
+        const planSelect = document.getElementById("details-plan-select");
+        planSelect.innerHTML = '<option value="">Schedule plan switch...</option>';
+        allPlansData.forEach(p => {
+            if (p.name !== sub.plan_name) {
+                const opt = document.createElement("option");
+                opt.value = p.id;
+                opt.textContent = `${p.name} (₦${p.amount.toLocaleString('en-US', {minimumFractionDigits: 2})} / ${p.interval_days} Days)`;
+                if (p.id === sub.pending_plan_id) {
+                    opt.selected = true;
+                }
+                planSelect.appendChild(opt);
+            }
+        });
+        
+        // Set up Event Listeners
+        const scheduleBtn = document.getElementById("details-schedule-switch-btn");
+        const cancelBtn = document.getElementById("details-cancel-switch-btn");
+        
+        // Clean up old listeners to avoid multiple binding
+        const newScheduleBtn = scheduleBtn.cloneNode(true);
+        scheduleBtn.parentNode.replaceChild(newScheduleBtn, scheduleBtn);
+        
+        const newCancelBtn = cancelBtn.cloneNode(true);
+        cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+        
+        newScheduleBtn.addEventListener("click", async () => {
+            const planId = planSelect.value;
+            if (!planId) {
+                showToast("Please select a plan to schedule.", "warning");
+                return;
+            }
+            if (!confirm(`Are you sure you want to schedule a switch for this subscriber? The change will execute automatically at their next renewal.`)) return;
+            
+            try {
+                const resp = await fetch(`/api/dashboard/subscriptions/${sub.id}/change-plan`, {
+                    method: "POST",
+                    headers: authHeaders,
+                    body: JSON.stringify({ plan_id: planId })
+                });
+                const resData = await resp.json();
+                if (resp.ok) {
+                    showToast(resData.message || "Plan switch scheduled successfully.", "success");
+                    loadData().then(() => showDetails(sub.id));
+                } else {
+                    showToast(resData.detail || "Failed to schedule switch", "error");
+                }
+            } catch (err) {
+                console.error(err);
+                showToast("Error scheduling plan switch.", "error");
+            }
+        });
+        
+        newCancelBtn.addEventListener("click", async () => {
+            if (!confirm("Are you sure you want to cancel the scheduled plan switch?")) return;
+            
+            try {
+                const resp = await fetch(`/api/dashboard/subscriptions/${sub.id}/change-plan`, {
+                    method: "POST",
+                    headers: authHeaders,
+                    body: JSON.stringify({ plan_id: null })
+                });
+                const resData = await resp.json();
+                if (resp.ok) {
+                    showToast("Scheduled plan switch cancelled.", "success");
+                    loadData().then(() => showDetails(sub.id));
+                } else {
+                    showToast(resData.detail || "Failed to cancel switch", "error");
+                }
+            } catch (err) {
+                console.error(err);
+                showToast("Error cancelling plan switch.", "error");
+            }
+        });
+
         // Populate payments
         const paymentsBody = document.getElementById("details-payments-body");
         paymentsBody.innerHTML = sub.payments.length ? sub.payments.map(p => `

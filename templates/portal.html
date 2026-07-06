@@ -267,9 +267,58 @@
             font-size: 0.75rem;
             color: var(--text-secondary);
         }
+
+        /* Toast Notification System */
+        #toast-container {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            pointer-events: none;
+        }
+
+        .toast {
+            min-width: 320px;
+            max-width: 420px;
+            background: rgba(15, 23, 42, 0.95);
+            border-left: 4px solid var(--primary-color);
+            color: #ffffff;
+            padding: 1rem 1.25rem;
+            border-radius: 12px;
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            pointer-events: auto;
+            animation: toastSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            backdrop-filter: blur(12px);
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .toast-success { border-left-color: var(--success-color); }
+        .toast-error { border-left-color: var(--danger-color); }
+        .toast-warning { border-left-color: var(--warning-color); }
+        .toast-info { border-left-color: var(--primary-color); }
+
+        @keyframes toastSlideIn {
+            from {
+                transform: translateY(1.5rem) scale(0.95);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+        }
     </style>
 </head>
 <body>
+<div id="toast-container"></div>
 
 <div class="container">
     <div class="header">
@@ -317,6 +366,46 @@
             </div>
         </div>
     </div>
+
+    <!-- Change Plan Card -->
+    {% if subscription.status != 'cancelled' %}
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Plan Management</h3>
+            {% if subscription.pending_plan_name %}
+                <span class="badge" style="background: rgba(245, 158, 11, 0.15); color: var(--warning-color); border: 1px solid rgba(245, 158, 11, 0.3); padding: 0.25rem 0.5rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600;">Pending Switch</span>
+            {% endif %}
+        </div>
+        <div class="card-body">
+            {% if subscription.pending_plan_name %}
+                <div style="background: rgba(245, 158, 11, 0.04); border: 1px solid rgba(245, 158, 11, 0.15); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; font-size: 0.85rem; color: #d97706; display: flex; justify-content: space-between; align-items: center; gap: 1rem;">
+                    <span>Scheduled to switch to <strong>{{ subscription.pending_plan_name }}</strong> at period end.</span>
+                    <button id="cancel-plan-change-btn" class="btn btn-danger-outline" style="padding: 0.35rem 0.75rem; font-size: 0.75rem; border-radius: 6px; margin: 0; white-space: nowrap;">Cancel Change</button>
+                </div>
+            {% endif %}
+            
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">
+                Select a plan below to schedule an upgrade or downgrade at the end of your current cycle.
+            </p>
+            
+            <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+                <select id="plan-select" class="form-control" style="flex: 1; min-width: 200px; height: 42px; border-radius: 8px; font-size: 0.85rem; padding: 0 0.75rem; cursor: pointer; border: 1px solid var(--border-color); background-color: white;">
+                    <option value="">Choose a plan...</option>
+                    {% for p in available_plans %}
+                        {% if p.id != subscription.plan_id %}
+                            <option value="{{ p.id }}" {% if p.id == subscription.pending_plan_id %}selected{% endif %}>
+                                {{ p.name }} (₦{{ "{:,.2f}".format(p.amount) }} / {{ p.interval_days }} Days)
+                            </option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+                <button id="change-plan-btn" class="btn btn-primary" style="height: 42px; padding: 0 1.5rem; display: flex; align-items: center; font-size: 0.85rem; border-radius: 8px;">
+                    Schedule Switch
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
     <!-- Payment Method Card -->
     <div class="card">
@@ -389,6 +478,39 @@
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('token') || '';
 
+    // Custom Toast Notification Function
+    function showToast(message, type = "info") {
+        const container = document.getElementById("toast-container");
+        if (!container) return;
+        
+        const toast = document.createElement("div");
+        toast.className = `toast toast-${type}`;
+        
+        let icon = "";
+        if (type === "success") {
+            icon = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--success-color)" stroke-width="2.5"><path d="M20 6L9 17L4 12"/></svg>`;
+        } else if (type === "error") {
+            icon = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--danger-color)" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`;
+        } else if (type === "warning") {
+            icon = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--warning-color)" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
+        } else {
+            icon = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>`;
+        }
+        
+        toast.innerHTML = `
+            ${icon}
+            <div style="flex: 1;">${message}</div>
+        `;
+        
+        container.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.opacity = "0";
+            toast.style.transform = "translateY(-1rem) scale(0.95)";
+            setTimeout(() => toast.remove(), 300);
+        }, 4000);
+    }
+
     // Update Payment Method (card tokenization)
     document.getElementById("update-card-btn")?.addEventListener("click", async () => {
         if (!confirm("We will direct you to Nomba's checkout to authorize your card. A temporary authorization charge may apply. Proceed?")) return;
@@ -401,11 +523,11 @@
             if (resp.ok && data.checkout_link) {
                 window.location.href = data.checkout_link;
             } else {
-                alert(data.detail || "Failed to generate checkout link");
+                showToast(data.detail || "Failed to generate checkout link", "error");
             }
         } catch (err) {
             console.error(err);
-            alert("An error occurred");
+            showToast("An error occurred", "error");
         }
     });
  
@@ -419,14 +541,14 @@
             });
             const data = await resp.json();
             if (resp.ok) {
-                alert("Your subscription is set to cancel at the end of the billing period.");
-                window.location.reload();
+                showToast("Your subscription is set to cancel at the end of the billing period.", "success");
+                setTimeout(() => window.location.reload(), 1500);
             } else {
-                alert(data.detail || "Failed to cancel subscription");
+                showToast(data.detail || "Failed to cancel subscription", "error");
             }
         } catch (err) {
             console.error(err);
-            alert("An error occurred");
+            showToast("An error occurred", "error");
         }
     });
 
@@ -440,14 +562,61 @@
             });
             const data = await resp.json();
             if (resp.ok) {
-                alert("Your subscription has been successfully resumed.");
-                window.location.reload();
+                showToast("Your subscription has been successfully resumed.", "success");
+                setTimeout(() => window.location.reload(), 1500);
             } else {
-                alert(data.detail || "Failed to resume subscription");
+                showToast(data.detail || "Failed to resume subscription", "error");
             }
         } catch (err) {
             console.error(err);
-            alert("An error occurred");
+            showToast("An error occurred", "error");
+        }
+    });
+
+    // Schedule Plan Switch
+    document.getElementById("change-plan-btn")?.addEventListener("click", async () => {
+        const planId = document.getElementById("plan-select").value;
+        if (!planId) {
+            showToast("Please select a plan to switch to.", "warning");
+            return;
+        }
+        if (!confirm("Are you sure you want to schedule a plan change? This switch will take effect on your next renewal date.")) return;
+        
+        try {
+            const resp = await fetch(`/api/portal/${subId}/change-plan?token=${token}&plan_id=${planId}`, {
+                method: "POST"
+            });
+            const data = await resp.json();
+            if (resp.ok) {
+                showToast(data.message || "Plan switch scheduled successfully.", "success");
+                setTimeout(() => window.location.reload(), 1500);
+            } else {
+                showToast(data.detail || "Failed to schedule plan switch", "error");
+            }
+        } catch (err) {
+            console.error(err);
+            showToast("An error occurred scheduling plan switch.", "error");
+        }
+    });
+
+    // Cancel Plan Change
+    document.getElementById("cancel-plan-change-btn")?.addEventListener("click", async () => {
+        if (!confirm("Are you sure you want to cancel the scheduled plan change?")) return;
+        
+        try {
+            const resp = await fetch(`/api/portal/${subId}/change-plan?token=${token}`, {
+                method: "POST"
+            });
+            const data = await resp.json();
+            if (resp.ok) {
+                showToast("Pending plan change cancelled successfully.", "success");
+                setTimeout(() => window.location.reload(), 1500);
+            } else {
+                showToast(data.detail || "Failed to cancel plan change", "error");
+            }
+        } catch (err) {
+            console.error(err);
+            showToast("An error occurred cancelling plan change.", "error");
         }
     });
 </script>
