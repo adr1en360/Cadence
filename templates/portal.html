@@ -513,8 +513,6 @@
 
     // Update Payment Method (card tokenization)
     document.getElementById("update-card-btn")?.addEventListener("click", async () => {
-        if (!confirm("We will direct you to Nomba's checkout to authorize your card. A temporary authorization charge may apply. Proceed?")) return;
-        
         try {
             const resp = await fetch(`/api/portal/${subId}/update-card?token=${token}`, {
                 method: "POST"
@@ -533,8 +531,6 @@
  
     // Cancel Subscription at period end
     document.getElementById("cancel-sub-btn")?.addEventListener("click", async () => {
-        if (!confirm("Are you sure you want to cancel? You will continue to have access until the end of your billing cycle.")) return;
-        
         try {
             const resp = await fetch(`/api/portal/${subId}/cancel?token=${token}`, {
                 method: "POST"
@@ -554,8 +550,6 @@
 
     // Resume Subscription
     document.getElementById("resume-sub-btn")?.addEventListener("click", async () => {
-        if (!confirm("Are you sure you want to resume your subscription?")) return;
-        
         try {
             const resp = await fetch(`/api/portal/${subId}/resume?token=${token}`, {
                 method: "POST"
@@ -580,7 +574,6 @@
             showToast("Please select a plan to switch to.", "warning");
             return;
         }
-        if (!confirm("Are you sure you want to schedule a plan change? This switch will take effect on your next renewal date.")) return;
         
         try {
             const resp = await fetch(`/api/portal/${subId}/change-plan?token=${token}&plan_id=${planId}`, {
@@ -601,8 +594,6 @@
 
     // Cancel Plan Change
     document.getElementById("cancel-plan-change-btn")?.addEventListener("click", async () => {
-        if (!confirm("Are you sure you want to cancel the scheduled plan change?")) return;
-        
         try {
             const resp = await fetch(`/api/portal/${subId}/change-plan?token=${token}`, {
                 method: "POST"
