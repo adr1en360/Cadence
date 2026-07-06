@@ -96,7 +96,7 @@ async def test_integration():
     try:
         # Create subscription with checkout url mapping
         callback_url = "https://localhost:8000/webhooks/nomba"
-        subscription, checkout_link = await BillingService.create_subscription(
+        subscription, checkout_link, _ = await BillingService.create_subscription(
             db=db,
             project=project,
             plan=plan,

@@ -59,7 +59,7 @@ async def create_subscription(
         )
         
     try:
-        subscription, checkout_link = await BillingService.create_subscription(
+        subscription, checkout_link, order_ref = await BillingService.create_subscription(
             db=db,
             project=project,
             plan=plan,
@@ -76,7 +76,8 @@ async def create_subscription(
             "status": subscription.status,
             "current_period_start": subscription.current_period_start.isoformat(),
             "current_period_end": subscription.current_period_end.isoformat(),
-            "checkout_link": checkout_link
+            "checkout_link": checkout_link,
+            "nomba_order_ref": order_ref
         }
     except Exception as e:
         print(f"[SUBSCRIPTIONS] Failed to initialize checkout for {payload.customer_email}: {type(e).__name__} - {str(e)}")
@@ -125,11 +126,14 @@ def get_subscription(
     return {
         "id": sub.id,
         "plan_id": sub.plan_id,
+        "plan_name": sub.plan.name if sub.plan else "N/A",
+        "plan_amount": float(sub.plan.amount) if sub.plan else 0.0,
         "customer_email": sub.customer_email,
         "customer_name": sub.customer_name,
         "status": sub.status,
         "current_period_start": sub.current_period_start.isoformat(),
         "current_period_end": sub.current_period_end.isoformat(),
+        "period_end": sub.current_period_end.isoformat(),
         "token_key": sub.token_key,
         "retry_count": sub.retry_count,
         "next_retry_at": sub.next_retry_at.isoformat() if sub.next_retry_at else None,

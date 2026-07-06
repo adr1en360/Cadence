@@ -754,7 +754,7 @@
                 });
                 const data = await resp.json();
                 if (resp.ok) {
-                    currentSubscription = data.subscription;
+                    currentSubscription = data;
 
                     // Show payment simulator panel
                     document.getElementById("checkout-section").style.display = "none";

@@ -69,7 +69,7 @@ class BillingService:
         customer_email: str,
         customer_name: str,
         callback_url: str
-    ) -> tuple[Subscription, str]:
+    ) -> tuple[Subscription, str, str]:
         """Initialize subscription and create a tokenized checkout order with Nomba."""
         now = datetime.utcnow()
         has_trial = plan.trial_days and plan.trial_days > 0
@@ -127,7 +127,7 @@ class BillingService:
         db.add(payment)
         db.commit()
         
-        return subscription, checkout_link
+        return subscription, checkout_link, order_ref
 
     @staticmethod
     def process_payment_success(db: Session, nomba_order_ref: str, transaction_id: str, token_key: str = None) -> Subscription:
