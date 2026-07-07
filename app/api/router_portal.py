@@ -130,6 +130,21 @@ async def update_card(sub_id: str, token: str = None, db: Session = Depends(get_
             detail="Failed to initialize card authorization"
         )
 
+@router.post("/api/portal/{sub_id}/delete-card")
+async def delete_portal_card(sub_id: str, token: str = None, db: Session = Depends(get_db)):
+    """Deletes the customer's stored tokenized card details."""
+    sub = db.query(Subscription).filter(Subscription.id == sub_id).first()
+    if not sub:
+        raise HTTPException(status_code=404, detail="Subscription not found")
+        
+    validate_portal_token(sub, token)
+    
+    try:
+        await BillingService.remove_saved_card(db=db, subscription_id=sub.id)
+        return {"status": "success", "message": "Card deleted successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
 @router.post("/api/portal/{sub_id}/cancel")
 def cancel_portal_subscription(sub_id: str, token: str = None, db: Session = Depends(get_db)):
     sub = db.query(Subscription).filter(Subscription.id == sub_id).first()

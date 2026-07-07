@@ -194,6 +194,23 @@ class NombaClient:
             resp.raise_for_status()
             return resp.json()
 
+    async def delete_tokenized_card(self, db: Session, project, token_key: str) -> dict:
+        """Delete tokenized card data from Nomba."""
+        if not token_key:
+            raise ValueError("token_key cannot be null or empty")
+            
+        path = "/v1/checkout/tokenized-card-data"
+        url = f"{self.base_url}{path}"
+        payload = {
+            "tokenKey": token_key
+        }
+        
+        headers = await self._get_auth_headers_for_project(db, project)
+        async with httpx.AsyncClient() as client:
+            resp = await client.request("DELETE", url, json=payload, headers=headers)
+            resp.raise_for_status()
+            return resp.json()
+
     async def get_wallet_balance(self, db: Session, project, sub_account_id: str = None) -> dict:
         """Fetch balance from Nomba for parent account or sub-account."""
         if sub_account_id:

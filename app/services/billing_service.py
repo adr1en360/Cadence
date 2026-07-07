@@ -386,3 +386,30 @@ class BillingService:
             "message": f"Subscription plan switch to {new_plan.name} scheduled for end of period."
         }
 
+    @staticmethod
+    async def remove_saved_card(db: Session, subscription_id: str) -> None:
+        """Removes the saved card from Nomba and clears the token in Cadence database."""
+        subscription = db.query(Subscription).filter(Subscription.id == subscription_id).first()
+        if not subscription:
+            raise ValueError("Subscription not found")
+            
+        if not subscription.token_key:
+            return
+            
+        try:
+            await nomba_client.delete_tokenized_card(
+                db=db, 
+                project=subscription.project, 
+                token_key=subscription.token_key
+            )
+        except Exception as e:
+            print(f"[NOMBA] Failed to delete token on remote: {e}")
+            
+        subscription.token_key = None
+        subscription.card_brand = None
+        subscription.card_last4 = None
+        
+        db.add(subscription)
+        db.commit()
+
+

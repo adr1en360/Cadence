@@ -125,6 +125,23 @@ async def run_integration_verification():
         except ValueError as e:
             print(f"[OK] Invalid transition correctly blocked by validator: {e}")
             
+        # Test card token deletion logic
+        print("[*] Seeding subscription with mock card token info...")
+        subscription.token_key = "tok_test_12345"
+        subscription.card_brand = "Mastercard"
+        subscription.card_last4 = "9999"
+        db.add(subscription)
+        db.commit()
+        
+        print("[*] Calling remove_saved_card...")
+        await BillingService.remove_saved_card(db, subscription.id)
+        
+        # Verify the columns are cleared
+        assert subscription.token_key is None, "token_key was not cleared"
+        assert subscription.card_brand is None, "card_brand was not cleared"
+        assert subscription.card_last4 is None, "card_last4 was not cleared"
+        print("[OK] Card token deletion service logic verified successfully!")
+            
     except Exception as e:
         print(f"[ERROR] Billing service execution failed: {e}")
         db.rollback()

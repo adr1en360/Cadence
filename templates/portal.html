@@ -445,9 +445,14 @@
     <div class="card">
         <div class="card-header">
             <h3 class="card-title">Payment Method</h3>
-            {% if subscription.status != 'cancelled' %}
-                <button id="update-card-btn" class="btn btn-outline" style="padding: 0.25rem 0.75rem; font-size: 0.75rem;">Update</button>
-            {% endif %}
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                {% if subscription.status != 'cancelled' %}
+                    <button id="update-card-btn" class="btn btn-outline" style="padding: 0.25rem 0.75rem; font-size: 0.75rem;">Update</button>
+                    {% if subscription.token_key %}
+                        <button id="delete-card-btn" class="btn btn-danger-outline" style="padding: 0.25rem 0.75rem; font-size: 0.75rem;">Remove Card</button>
+                    {% endif %}
+                {% endif %}
+            </div>
         </div>
         <div class="card-body">
             <div class="payment-method-row">
@@ -728,6 +733,32 @@
         } catch (err) {
             console.error(err);
             showToast("An error occurred cancelling plan change.", "error");
+        }
+    });
+
+    // Remove Stored Card
+    document.getElementById("delete-card-btn")?.addEventListener("click", async () => {
+        const confirmed = await showConfirm(
+            "Remove Saved Card",
+            "Are you sure you want to remove your saved card? Your subscription might fail to renew on the next billing date.",
+            true
+        );
+        if (!confirmed) return;
+
+        try {
+            const resp = await fetch(`/api/portal/${subId}/delete-card?token=${token}`, {
+                method: "POST"
+            });
+            const data = await resp.json();
+            if (resp.ok) {
+                showToast("Card removed successfully.", "success");
+                setTimeout(() => window.location.reload(), 1500);
+            } else {
+                showToast(data.detail || "Failed to remove saved card", "error");
+            }
+        } catch (err) {
+            console.error(err);
+            showToast("An error occurred removing card", "error");
         }
     });
 </script>
