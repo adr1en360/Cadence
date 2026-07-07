@@ -18,7 +18,7 @@ from app.services.dunning_service import DunningService
 
 load_dotenv()
 
-async def test_integration():
+async def run_integration_verification():
     print("[*] Starting Core Services Verification Script...")
     
     # 1. DB Session Check
@@ -145,7 +145,11 @@ async def test_integration():
     print("[SUCCESS] Core services integration verification complete!")
     return True
 
+def test_integration():
+    success = asyncio.run(run_integration_verification())
+    assert success is True
+
 if __name__ == "__main__":
-    success = asyncio.run(test_integration())
+    success = asyncio.run(run_integration_verification())
     import sys
     sys.exit(0 if success else 1)

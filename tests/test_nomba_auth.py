@@ -10,7 +10,7 @@ load_dotenv()
 SANDBOX_BASE = "https://sandbox.nomba.com"
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
 
-def test_auth():
+def run_auth_test():
     print("[*] Loading Nomba credentials from .env...")
     client_id = os.getenv("NOMBA_CLIENT_ID")
     client_secret = os.getenv("NOMBA_CLIENT_SECRET")
@@ -66,7 +66,10 @@ def test_auth():
         print(f"[ERROR] Request failed: {e}")
         return False
 
+def test_auth():
+    assert run_auth_test() is True
+
 if __name__ == "__main__":
-    success = test_auth()
+    success = run_auth_test()
     import sys
     sys.exit(0 if success else 1)

@@ -5,7 +5,7 @@ from sqlalchemy import create_engine, text
 # Load env variables from .env
 load_dotenv()
 
-def test_db_connection():
+def run_db_connection_test():
     print("[*] Loading database configuration from .env...")
     database_url = os.getenv("DATABASE_URL")
 
@@ -31,7 +31,10 @@ def test_db_connection():
         print(f"[ERROR] Failed to connect to the database: {e}")
         return False
 
+def test_db_connection():
+    assert run_db_connection_test() is True
+
 if __name__ == "__main__":
-    success = test_db_connection()
+    success = run_db_connection_test()
     import sys
     sys.exit(0 if success else 1)

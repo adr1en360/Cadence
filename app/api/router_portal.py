@@ -159,7 +159,6 @@ def resume_portal_subscription(sub_id: str, token: str = None, db: Session = Dep
     db.add(sub)
     db.commit()
     return {"status": "resumed"}
-
 @router.post("/api/portal/{sub_id}/change-plan")
 def portal_change_plan(sub_id: str, token: str = None, plan_id: str = None, db: Session = Depends(get_db)):
     sub = db.query(Subscription).filter(Subscription.id == sub_id).first()
@@ -168,29 +167,11 @@ def portal_change_plan(sub_id: str, token: str = None, plan_id: str = None, db: 
         
     validate_portal_token(sub, token)
     
-    from app.models.plan import Plan
-    if not plan_id:
-        # If no plan_id is provided, treat it as clearing any pending changes
-        sub.pending_plan_id = None
-        db.add(sub)
-        db.commit()
-        return {"status": "cleared", "message": "Pending plan switch cancelled"}
-        
-    new_plan = db.query(Plan).filter(Plan.id == plan_id, Plan.project_id == sub.project_id, Plan.is_active == True).first()
-    if not new_plan:
-        raise HTTPException(status_code=404, detail="Selected plan not found or inactive")
-        
-    if plan_id == sub.plan_id:
-        sub.pending_plan_id = None
-        db.add(sub)
-        db.commit()
-        return {"status": "cleared", "message": "Pending plan switch cancelled"}
-        
-    sub.pending_plan_id = plan_id
-    db.add(sub)
-    db.commit()
-    return {
-        "status": "scheduled",
-        "pending_plan_name": new_plan.name,
-        "message": f"Your plan will switch to {new_plan.name} at the end of the current billing cycle."
-    }
+    from app.services.billing_service import BillingService
+    try:
+        res = BillingService.schedule_plan_change(db, sub, plan_id)
+        if res.get("status") == "scheduled":
+            res["message"] = f"Your plan will switch to {res['pending_plan_name']} at the end of the current billing cycle."
+        return res
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))

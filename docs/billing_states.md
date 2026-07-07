@@ -1,11 +1,14 @@
 # Billing State Machine
 
-## Six Subscription States
+## Seven Subscription States
 
 ```mermaid
 stateDiagram-v2
+    [*] --> pending_payment: merchant creates subscription (no trial)
     [*] --> trialing: merchant creates subscription with trial
-    [*] --> active: merchant creates subscription (no trial)
+    
+    pending_payment --> active: first payment succeeds
+    pending_payment --> cancelled: cancelled before checkout complete
     
     trialing --> active: trial ends + first payment succeeds
     trialing --> cancelled: merchant or subscriber cancels during trial
@@ -28,6 +31,7 @@ stateDiagram-v2
 
 | State | Meaning | Access | Dunning Active? |
 |-------|---------|--------|-----------------|
+| `pending_payment` | Initial checkout pending | No access (awaiting first payment) | No |
 | `trialing` | Free trial period, no charge yet | Full access | No |
 | `active` | Paid and current | Full access | No |
 | `past_due` | Renewal failed, retrying | Full access (grace) | **Yes** |
@@ -49,6 +53,7 @@ Total grace period: **11 days** from first failure to suspension.
 
 ```python
 VALID_TRANSITIONS = {
+    "pending_payment": ["active", "cancelled"],
     "trialing":  ["active", "cancelled"],
     "active":    ["past_due", "cancelled", "expired", "suspended"],
     "past_due":  ["active", "suspended"],
@@ -80,4 +85,4 @@ To prevent double-charging a customer if a network timeout or local database cra
 2. If found, the engine executes a pre-flight query to Nomba's requery API (`verify_transaction`).
 3. If Nomba confirms the payment succeeded downstream, Cadence bypasses executing a new charge, advances the subscription's `period_end` dates locally, and completes the state synchronization securely.
 
-_Last updated: 2026-07-02_
+_Last updated: 2026-07-07_

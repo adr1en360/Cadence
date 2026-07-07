@@ -3,7 +3,6 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     NOMBA_ENV: str = "sandbox"
     NOMBA_ACCOUNT_ID: str
-    NOMBA_SUB_ACCOUNT_ID: str
     NOMBA_CLIENT_ID: str
     NOMBA_CLIENT_SECRET: str
     NOMBA_WEBHOOK_SECRET: str

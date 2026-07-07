@@ -2,10 +2,7 @@ from sqlalchemy import Column, String, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 import uuid
 from datetime import datetime
-from app.core.database import Base
-
-def generate_uuid():
-    return str(uuid.uuid4())
+from app.core.database import Base, generate_uuid
 
 class Project(Base):
     __tablename__ = "projects"

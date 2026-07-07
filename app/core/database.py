@@ -20,3 +20,8 @@ def get_db():
         yield db
     finally:
         db.close()
+
+def generate_uuid():
+    """Generate a string representation of a random UUID4."""
+    import uuid
+    return str(uuid.uuid4())

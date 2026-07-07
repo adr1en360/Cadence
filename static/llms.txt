@@ -38,19 +38,22 @@ Endpoints:
 POST   /api/plans                        Create a subscription plan
 GET    /api/plans                        List plans
 GET    /api/plans/{id}                   Get plan
+DELETE /api/plans/{id}                   Soft-delete a plan
 POST   /api/subscriptions                Enroll subscriber, returns checkout_url
 GET    /api/subscriptions                List subscriptions
 GET    /api/subscriptions/{id}           Get subscription state
-POST   /api/subscriptions/{id}/cancel    Cancel subscription
+POST   /api/subscriptions/{id}/cancel    Cancel subscription (immediate or at period end)
 POST   /api/subscriptions/{id}/portal-link  Generate subscriber magic link
+POST   /api/payments/{id}/refund         Refund a payment
 
 ## Key Concepts
 - tokenKey: Nomba's card token returned after first checkout. 
   Used for all future recurring charges. Stored on the subscription.
-- dunning: Automatic retry schedule for failed payments
+- dunning: Automatic retry schedule for failed payments.
 - portal-link: Magic link sent to subscriber for self-service 
   billing management. No password required.
 - project: Multi-tenancy container. One merchant can have many projects.
+- pre-flight recovery: To prevent double charging, Cadence verifies any pending payment with Nomba's requery API before executing a retry.
 
 ## Docs
 - /developer — Introduction and quickstart
@@ -59,4 +62,6 @@ POST   /api/subscriptions/{id}/portal-link  Generate subscriber magic link
 - /developer/subscriptions — Subscriptions API reference
 - /developer/webhooks — Webhook events and HMAC verification
 - /developer/errors — Error codes
-- /openapi.json — Machine-readable API spec
+- /developer/payments — Payments and refunds API reference
+- /openapi.json — Machine-readable OpenAPI spec
+- /llms.txt — Machine-readable LLM context

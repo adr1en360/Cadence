@@ -275,3 +275,103 @@ class BillingService:
         )
 
         db.commit()
+
+    @staticmethod
+    async def refund_payment(db: Session, payment: Payment, project: Project) -> dict:
+        """Refund a payment transaction via Nomba client."""
+        import json
+        from datetime import datetime
+        from app.services.webhook_dispatcher import dispatch_webhook
+        
+        resp = await nomba_client.refund_transaction(
+            db=db,
+            project=project,
+            transaction_id=payment.nomba_transaction_id,
+            amount=float(payment.amount)
+        )
+        
+        code = resp.get("code")
+        status_val = resp.get("status")
+        
+        # Depending on sandbox/production structure, success is code "00" or status SUCCESS
+        if code == "00" or status_val == "SUCCESS" or resp.get("data", {}).get("status") == "SUCCESS":
+            payment.status = "refunded"
+            db.add(payment)
+            
+            # Log refund event
+            event = Event(
+                project_id=project.id,
+                subscription_id=payment.subscription_id,
+                event_type="payment.refunded",
+                data_json=json.dumps({
+                    "payment_id": payment.id,
+                    "nomba_transaction_id": payment.nomba_transaction_id,
+                    "amount": float(payment.amount),
+                    "timestamp": datetime.utcnow().isoformat()
+                })
+            )
+            db.add(event)
+            
+            # Dispatch webhook to merchant
+            dispatch_webhook(
+                project=project,
+                event_type="payment.refunded",
+                data={
+                    "payment_id": payment.id,
+                    "nomba_transaction_id": payment.nomba_transaction_id,
+                    "amount": float(payment.amount),
+                    "customer_email": payment.subscription.customer_email if payment.subscription else None
+                }
+            )
+            
+            db.commit()
+            return {"status": "refunded"}
+        else:
+            raise RuntimeError(f"Nomba refund rejected: {resp}")
+
+    @staticmethod
+    def generate_portal_link(db: Session, subscription: Subscription, base_url: str) -> dict:
+        """Generate tokenized magic URL for self-service customer portal."""
+        import secrets
+        from datetime import datetime, timedelta
+        
+        token = secrets.token_urlsafe(32)
+        subscription.portal_token = token
+        subscription.portal_token_expires_at = datetime.utcnow() + timedelta(hours=2)
+        db.add(subscription)
+        db.commit()
+        
+        portal_url = f"{base_url}/portal/{subscription.id}?token={token}"
+        return {
+            "portal_url": portal_url,
+            "expires_at": subscription.portal_token_expires_at.isoformat()
+        }
+
+    @staticmethod
+    def schedule_plan_change(db: Session, subscription: Subscription, plan_id: str | None) -> dict:
+        """Schedule a subscription plan switch or cancel any pending schedule."""
+        if not plan_id:
+            subscription.pending_plan_id = None
+            db.add(subscription)
+            db.commit()
+            return {"status": "cleared", "message": "Pending plan switch cancelled"}
+            
+        new_plan = db.query(Plan).filter(Plan.id == plan_id, Plan.project_id == subscription.project_id, Plan.is_active == True).first()
+        if not new_plan:
+            raise ValueError("Selected plan not found or inactive")
+            
+        if plan_id == subscription.plan_id:
+            subscription.pending_plan_id = None
+            db.add(subscription)
+            db.commit()
+            return {"status": "cleared", "message": "Pending plan switch cancelled"}
+            
+        subscription.pending_plan_id = plan_id
+        db.add(subscription)
+        db.commit()
+        return {
+            "status": "scheduled",
+            "pending_plan_name": new_plan.name,
+            "message": f"Subscription plan switch to {new_plan.name} scheduled for end of period."
+        }
+

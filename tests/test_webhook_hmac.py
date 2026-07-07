@@ -59,7 +59,7 @@ def verify_nomba_webhook(
     is_valid = hmac.compare_digest(computed_signature, nomba_sig)
     return is_valid
 
-def test_webhook_signing():
+def run_webhook_signing_test():
     print("[*] Starting Webhook HMAC Signature Test...")
     
     secret_key = "test_merchant_secret_key"
@@ -120,7 +120,10 @@ def test_webhook_signing():
         print("[ERROR] Webhook verification logic failed.")
         return False
 
+def test_webhook_signing():
+    assert run_webhook_signing_test() is True
+
 if __name__ == "__main__":
-    success = test_webhook_signing()
+    success = run_webhook_signing_test()
     import sys
     sys.exit(0 if success else 1)

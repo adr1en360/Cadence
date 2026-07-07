@@ -18,6 +18,7 @@ async def refund_payment(
     db: Session = Depends(get_db)
 ):
     """Refund a successful payment transaction."""
+    from app.services.billing_service import BillingService
     payment = db.query(Payment).filter(Payment.id == payment_id, Payment.project_id == project.id).first()
     if not payment:
         raise HTTPException(
@@ -38,56 +39,8 @@ async def refund_payment(
         )
 
     try:
-        # Request refund from Nomba
-        resp = await nomba_client.refund_transaction(
-            db=db,
-            project=project,
-            transaction_id=payment.nomba_transaction_id,
-            amount=float(payment.amount)
-        )
-        
-        # Verify response code
-        code = resp.get("code")
-        status_val = resp.get("status")
-        
-        # Depending on sandbox/production structure, success is code "00" or status SUCCESS
-        if code == "00" or status_val == "SUCCESS" or resp.get("data", {}).get("status") == "SUCCESS":
-            payment.status = "refunded"
-            db.add(payment)
-            
-            # Log refund event
-            event = Event(
-                project_id=project.id,
-                subscription_id=payment.subscription_id,
-                event_type="payment.refunded",
-                data_json=json.dumps({
-                    "payment_id": payment.id,
-                    "nomba_transaction_id": payment.nomba_transaction_id,
-                    "amount": float(payment.amount),
-                    "timestamp": datetime.utcnow().isoformat()
-                })
-            )
-            db.add(event)
-            
-            # Dispatch webhook to merchant
-            from app.services.webhook_dispatcher import dispatch_webhook
-            dispatch_webhook(
-                project=project,
-                event_type="payment.refunded",
-                data={
-                    "payment_id": payment.id,
-                    "nomba_transaction_id": payment.nomba_transaction_id,
-                    "amount": float(payment.amount),
-                    "customer_email": payment.subscription.customer_email if payment.subscription else None
-                }
-            )
-            
-            db.commit()
-            
-            return {"message": "Payment refunded successfully", "status": "refunded"}
-        else:
-            raise RuntimeError(f"Nomba refund rejected: {resp}")
-            
+        await BillingService.refund_payment(db, payment, project)
+        return {"message": "Payment refunded successfully", "status": "refunded"}
     except Exception as e:
         print(f"[PAYMENTS] Refund failed for payment {payment.id}: {type(e).__name__} - {str(e)}")
         raise HTTPException(

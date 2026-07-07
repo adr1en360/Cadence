@@ -173,7 +173,6 @@ def cancel_subscription(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Subscription cannot be cancelled from its current state"
         )
-
 @router.post("/{sub_id}/portal-link")
 def generate_portal_link(
     sub_id: str,
@@ -187,15 +186,6 @@ def generate_portal_link(
             detail="Subscription not found"
         )
         
-    token = secrets.token_urlsafe(32)
-    sub.portal_token = token
-    sub.portal_token_expires_at = datetime.utcnow() + timedelta(hours=2)
-    db.add(sub)
-    db.commit()
-    
-    # Generate tokenized magic URL
-    portal_url = f"{settings.BASE_URL}/portal/{sub.id}?token={token}"
-    return {
-        "portal_url": portal_url,
-        "expires_at": sub.portal_token_expires_at.isoformat()
-    }
+    from app.services.billing_service import BillingService
+    from app.core.config import settings
+    return BillingService.generate_portal_link(db, sub, settings.BASE_URL)

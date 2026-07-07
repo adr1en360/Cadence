@@ -63,7 +63,7 @@ Authorization: Bearer cd_proj_123abc...
 ### Step B: Create a Plan
 Define the product details, interval, and price:
 ```bash
-curl -X POST https://cadence.onrender.com/api/plans \
+curl -X POST https://cadence-p0x6.onrender.com/api/plans \
   -H "Authorization: Bearer cd_..." \
   -H "Content-Type: application/json" \
   -d '{
@@ -78,7 +78,7 @@ curl -X POST https://cadence.onrender.com/api/plans \
 ### Step C: Initialize Subscription Checkout
 When a user subscribes on your frontend, call Cadence to generate a checkout session:
 ```bash
-curl -X POST https://cadence.onrender.com/api/subscriptions \
+curl -X POST https://cadence-p0x6.onrender.com/api/subscriptions \
   -H "Authorization: Bearer cd_..." \
   -H "Content-Type: application/json" \
   -d '{
@@ -126,7 +126,7 @@ The dashboard is the merchant's control panel. It is strictly an operations tool
 
 ### Webhook URL Configuration
 For Nomba to forward payment events (such as checkout success or renewal outcomes) to Cadence, you must submit your deployed webhook URL and test sub-account ID to the Nomba team:
-* **Webhook Endpoint:** `https://your-app-domain.onrender.com/webhooks/nomba`
+* **Webhook Endpoint:** `https://cadence-p0x6.onrender.com/webhooks/nomba`
 * **Sub-Account ID:** `7ccf96be-ce2c-435d-8ff8-496da5817a71`
 * **Webhook Signing Key:** `NombaHackathon2026` (configured locally/production via the `NOMBA_WEBHOOK_SECRET` environment variable).
 

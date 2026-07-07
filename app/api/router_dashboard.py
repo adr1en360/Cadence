@@ -382,7 +382,6 @@ async def get_wallet_balance_route(
             "currency": "NGN",
             "error": "Failed to retrieve wallet balance"
         }
-
 @router.post("/api/dashboard/subscriptions/{sub_id}/portal-link")
 def dashboard_generate_portal_link(
     sub_id: str,
@@ -393,23 +392,12 @@ def dashboard_generate_portal_link(
     if not sub:
         raise HTTPException(status_code=404, detail="Subscription not found")
         
-    import secrets
-    from datetime import datetime, timedelta
-    token = secrets.token_urlsafe(32)
-    sub.portal_token = token
-    sub.portal_token_expires_at = datetime.utcnow() + timedelta(hours=2)
-    db.add(sub)
-    db.commit()
-    
-    portal_url = f"{settings.BASE_URL}/portal/{sub.id}?token={token}"
-    return {
-        "portal_url": portal_url,
-        "expires_at": sub.portal_token_expires_at.isoformat()
-    }
+    from app.services.billing_service import BillingService
+    return BillingService.generate_portal_link(db, sub, settings.BASE_URL)
+
 
 class DashboardChangePlanRequest(BaseModel):
     plan_id: Optional[str] = None
-
 @router.post("/api/dashboard/subscriptions/{sub_id}/change-plan")
 def dashboard_change_plan(
     sub_id: str,
@@ -421,30 +409,12 @@ def dashboard_change_plan(
     if not sub:
         raise HTTPException(status_code=404, detail="Subscription not found")
         
-    if not payload.plan_id:
-        sub.pending_plan_id = None
-        db.add(sub)
-        db.commit()
-        return {"status": "cleared", "message": "Pending plan switch cancelled"}
-        
-    new_plan = db.query(Plan).filter(Plan.id == payload.plan_id, Plan.project_id == sub.project_id, Plan.is_active == True).first()
-    if not new_plan:
-        raise HTTPException(status_code=404, detail="Selected plan not found or inactive")
-        
-    if payload.plan_id == sub.plan_id:
-        sub.pending_plan_id = None
-        db.add(sub)
-        db.commit()
-        return {"status": "cleared", "message": "Pending plan switch cancelled"}
-        
-    sub.pending_plan_id = payload.plan_id
-    db.add(sub)
-    db.commit()
-    return {
-        "status": "scheduled",
-        "pending_plan_name": new_plan.name,
-        "message": f"Subscription plan switch to {new_plan.name} scheduled for end of period."
-    }
+    from app.services.billing_service import BillingService
+    try:
+        return BillingService.schedule_plan_change(db, sub, payload.plan_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
 
 @router.post("/api/dashboard/payments/{payment_id}/refund")
 async def dashboard_refund_payment(
@@ -463,52 +433,9 @@ async def dashboard_refund_payment(
         raise HTTPException(status_code=400, detail="Payment lacks a transaction ID")
         
     try:
-        from app.core.nomba_client import nomba_client
-        resp = await nomba_client.refund_transaction(
-            db=db,
-            project=payment.project,
-            transaction_id=payment.nomba_transaction_id,
-            amount=float(payment.amount)
-        )
-        
-        code = resp.get("code")
-        status_val = resp.get("status")
-        
-        if code == "00" or status_val == "SUCCESS" or resp.get("data", {}).get("status") == "SUCCESS":
-            payment.status = "refunded"
-            db.add(payment)
-            
-            # Log refund event
-            event = Event(
-                project_id=payment.project_id,
-                subscription_id=payment.subscription_id,
-                event_type="payment.refunded",
-                data_json=json.dumps({
-                    "payment_id": payment.id,
-                    "nomba_transaction_id": payment.nomba_transaction_id,
-                    "amount": float(payment.amount),
-                    "timestamp": datetime.utcnow().isoformat()
-                })
-            )
-            db.add(event)
-            
-            # Dispatch webhook to merchant
-            from app.services.webhook_dispatcher import dispatch_webhook
-            dispatch_webhook(
-                project=payment.project,
-                event_type="payment.refunded",
-                data={
-                    "payment_id": payment.id,
-                    "nomba_transaction_id": payment.nomba_transaction_id,
-                    "amount": float(payment.amount),
-                    "customer_email": payment.subscription.customer_email if payment.subscription else None
-                }
-            )
-            
-            db.commit()
-            return {"status": "refunded"}
-        else:
-            raise RuntimeError(f"Nomba refund rejected: {resp}")
+        from app.services.billing_service import BillingService
+        await BillingService.refund_payment(db, payment, payment.project)
+        return {"status": "refunded"}
     except Exception as e:
         print(f"[DASHBOARD] Refund failed for payment {payment_id}: {type(e).__name__} - {str(e)}")
         raise HTTPException(status_code=500, detail="Refund processing failed")
