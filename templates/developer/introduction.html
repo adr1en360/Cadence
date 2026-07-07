@@ -132,7 +132,7 @@
   <div id="dunning" class="space-y-6 pt-6 border-t border-gray-200/60">
     <h2 class="font-title text-2xl font-semibold tracking-tight text-[#0D0D0D]">Dunning & Automatic Retries</h2>
     <p class="text-[#6B6B6B] leading-relaxed">
-      When a renewal payment fails, the subscription is moved to the <code>past_due</code> state and the dunning scheduler automatically schedules retries over a **11-day grace period** before suspension:
+      When a renewal payment fails, the subscription is moved to the <code>past_due</code> state and the dunning scheduler automatically schedules retries over a <strong>11-day grace period</strong> before suspension:
     </p>
 
     <div class="overflow-x-auto">
@@ -182,17 +182,17 @@
       In developing regions, network connection failures or application crashes immediately after charging a user card but prior to database commit can lead to dangerous double-charging.
     </p>
     <p class="text-[#6B6B6B] leading-relaxed">
-      Cadence features **Pre-flight Verification Protection**. Before executing any automatic renewal card charge:
+      Cadence features <strong>Pre-flight Verification Protection</strong>. Before executing any automatic renewal card charge:
     </p>
     <ul class="list-disc list-inside text-[#6B6B6B] space-y-2 leading-relaxed">
       <li>
         The engine scans for any existing <code>pending</code> payments initiated in the current cycle.
       </li>
       <li>
-        If found, Cadence executes a **pre-flight requery call** to Nomba's <code>verify_transaction</code> API to verify the downstream status.
+        If found, Cadence executes a <strong>pre-flight requery call</strong> to Nomba's <code>verify_transaction</code> API to verify the downstream status.
       </li>
       <li>
-        If Nomba confirms that the payment succeeded, Cadence automatically **bypasses the new charge**, consumes the token key, advances the subscription's billing period, and writes it to the database, ensuring zero double-charging.
+        If Nomba confirms that the payment succeeded, Cadence automatically <strong>bypasses the new charge</strong>, consumes the token key, advances the subscription's billing period, and writes it to the database, ensuring zero double-charging.
       </li>
     </ul>
   </div>
