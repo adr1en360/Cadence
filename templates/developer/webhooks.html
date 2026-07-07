@@ -6,6 +6,7 @@
   <a href="#overview" class="block text-[#6B6B6B] hover:text-[#F26419] transition-colors py-1">Overview</a>
   <a href="#signature" class="block text-[#6B6B6B] hover:text-[#F26419] transition-colors py-1">Signature Verification</a>
   <a href="#events" class="block text-[#6B6B6B] hover:text-[#F26419] transition-colors py-1">Event Types</a>
+  <a href="#sandbox" class="block text-[#6B6B6B] hover:text-[#F26419] transition-colors py-1">Sandbox Simulation</a>
 {% endblock %}
 
 {% block content %}
@@ -23,27 +24,29 @@
 
   <!-- Webhook Verification Section -->
   <div id="signature" class="space-y-6 pt-6 border-t border-gray-200/60">
-    <h2 class="font-title text-2xl font-semibold tracking-tight">Outbound Signature Verification</h2>
+    <h2 class="font-title text-2xl font-semibold tracking-tight text-[#0D0D0D]">Outbound Signature Verification</h2>
     <p class="text-[#6B6B6B] leading-relaxed">
       Every webhook body sent by Cadence is signed using your merchant account's private Webhook Signing Secret. The signature is transmitted in the <code>X-Cadence-Signature</code> header.
     </p>
     <p class="text-[#6B6B6B] leading-relaxed">
-      To verify the payload is genuine, parse the JSON body and compute the HMAC-SHA256 hash of its compact JSON representation using your Webhook Secret:
+      To verify the payload is genuine, parse the JSON body and compute the HMAC-SHA256 hash of its compact JSON representation using your Webhook Secret.
     </p>
 
-    <!-- Code Block -->
-    <div class="rounded-xl overflow-hidden bg-[#1A1A1A] border border-[#1A1A1A] shadow-md max-w-2xl">
-      <div class="flex items-center justify-between px-4 py-2 bg-[#0D0D0D]/40 border-b border-solid border-[#1A1A1A] text-xs text-[#6B6B6B] font-mono">
-        <span>Python HMAC Verification Example</span>
-      </div>
-      <div class="p-4 font-mono text-xs text-[#F7F7F5] overflow-x-auto whitespace-pre">import hmac
+    <!-- Code Tabs -->
+    <div class="space-y-4">
+      <!-- Python -->
+      <div class="rounded-xl overflow-hidden bg-[#1A1A1A] border border-[#1A1A1A] shadow-md">
+        <div class="flex items-center justify-between px-4 py-2 bg-[#0D0D0D]/40 border-b border-solid border-[#1A1A1A] text-xs text-[#6B6B6B] font-mono">
+          <span>Python</span>
+        </div>
+        <div class="p-4 font-mono text-xs text-[#F7F7F5] overflow-x-auto whitespace-pre">import hmac
 import hashlib
 import json
 
 expected_sig = request.headers.get("X-Cadence-Signature")
 
 # Reconstruct the exact compact body layout signed by Cadence
-payload_dict = request.json()  # Parse request body as JSON dict
+payload_dict = request.json()
 compact_body = json.dumps(payload_dict, separators=(',', ':'))
 
 computed_sig = hmac.new(
@@ -55,25 +58,72 @@ computed_sig = hmac.new(
 if hmac.compare_digest(computed_sig, expected_sig):
     # Payload is verified and safe
     process_event()</div>
+      </div>
+
+      <!-- Node.js -->
+      <div class="rounded-xl overflow-hidden bg-[#1A1A1A] border border-[#1A1A1A] shadow-md">
+        <div class="flex items-center justify-between px-4 py-2 bg-[#0D0D0D]/40 border-b border-solid border-[#1A1A1A] text-xs text-[#6B6B6B] font-mono">
+          <span>Node.js</span>
+        </div>
+        <div class="p-4 font-mono text-xs text-[#F7F7F5] overflow-x-auto whitespace-pre">const crypto = require('crypto');
+
+const expectedSig = req.headers['x-cadence-signature'];
+const compactBody = JSON.stringify(req.body);
+
+const computedSig = crypto
+  .createHmac('sha256', WEBHOOK_SECRET)
+  .update(compactBody)
+  .digest('hex');
+
+if (crypto.timingSafeEqual(Buffer.from(computedSig), Buffer.from(expectedSig))) {
+  // Payload is verified and safe
+  processEvent();
+}</div>
+      </div>
+
+      <!-- Go -->
+      <div class="rounded-xl overflow-hidden bg-[#1A1A1A] border border-[#1A1A1A] shadow-md">
+        <div class="flex items-center justify-between px-4 py-2 bg-[#0D0D0D]/40 border-b border-solid border-[#1A1A1A] text-xs text-[#6B6B6B] font-mono">
+          <span>Go</span>
+        </div>
+        <div class="p-4 font-mono text-xs text-[#F7F7F5] overflow-x-auto whitespace-pre">import (
+    "crypto/hmac"
+    "crypto/sha256"
+    "encoding/hex"
+    "encoding/json"
+)
+
+func VerifyCadenceWebhook(bodyBytes []byte, secret string, expectedSig string) bool {
+    var raw interface{}
+    json.Unmarshal(bodyBytes, &raw)
+    compactBody, _ := json.Marshal(raw)
+
+    mac := hmac.New(sha256.New, []byte(secret))
+    mac.Write(compactBody)
+    computedSig := hex.EncodeToString(mac.Sum(nil))
+
+    return hmac.Equal([]byte(computedSig), []byte(expectedSig))
+}</div>
+      </div>
     </div>
   </div>
 
   <!-- Event Types Section -->
   <div id="events" class="space-y-6 pt-6 border-t border-gray-200/60">
-    <h2 class="font-title text-2xl font-semibold tracking-tight">Event Types & Payloads</h2>
+    <h2 class="font-title text-2xl font-semibold tracking-tight text-[#0D0D0D]">Event Types & Payloads</h2>
     
-    <div class="space-y-4">
-      <h3 class="font-semibold text-lg text-[#0D0D0D]">1. <code>subscription.status_updated</code></h3>
-      <p class="text-[#6B6B6B] text-sm">
-        Fired when a subscriber's state machine changes (e.g. from <code>active</code> to <code>past_due</code> or when a subscription is cancelled).
-      </p>
-
-      <!-- Response JSON -->
-      <div class="rounded-xl overflow-hidden bg-[#1A1A1A] border border-[#1A1A1A] shadow-md max-w-2xl">
-        <div class="flex items-center justify-between px-4 py-2 bg-[#0D0D0D]/40 border-b border-solid border-[#1A1A1A] text-xs text-[#6B6B6B] font-mono">
-          <span>Payload Example</span>
-        </div>
-        <div class="p-4 font-mono text-xs text-[#F7F7F5] overflow-x-auto whitespace-pre">{
+    <div class="space-y-6">
+      <!-- 1. status updated -->
+      <div>
+        <h3 class="font-semibold text-lg text-[#0D0D0D] mb-2">1. <code>subscription.status_updated</code></h3>
+        <p class="text-[#6B6B6B] text-sm mb-4 leading-relaxed">
+          Fired when a subscriber's state machine changes (e.g. from <code>active</code> to <code>past_due</code> or when a subscription enters a grace period).
+        </p>
+        <div class="rounded-xl overflow-hidden bg-[#1A1A1A] border border-[#1A1A1A] shadow-md max-w-2xl">
+          <div class="flex items-center justify-between px-4 py-2 bg-[#0D0D0D]/40 border-b border-solid border-[#1A1A1A] text-xs text-[#6B6B6B] font-mono">
+            <span>Payload Example</span>
+          </div>
+          <div class="p-4 font-mono text-xs text-[#F7F7F5] overflow-x-auto whitespace-pre">{
   "event_type": "subscription.status_updated",
   "created_at": "2026-07-01T12:05:00Z",
   "data": {
@@ -82,6 +132,142 @@ if hmac.compare_digest(computed_sig, expected_sig):
     "new_state": "past_due",
     "customer_email": "customer@example.com"
   }
+}</div>
+        </div>
+      </div>
+
+      <!-- 2. cancelled -->
+      <div>
+        <h3 class="font-semibold text-lg text-[#0D0D0D] mb-2">2. <code>subscription.cancelled</code></h3>
+        <p class="text-[#6B6B6B] text-sm mb-4 leading-relaxed">
+          Fired when a subscriber is cancelled (either immediately or scheduled to be cancelled at the end of the billing period).
+        </p>
+        <div class="rounded-xl overflow-hidden bg-[#1A1A1A] border border-[#1A1A1A] shadow-md max-w-2xl">
+          <div class="flex items-center justify-between px-4 py-2 bg-[#0D0D0D]/40 border-b border-solid border-[#1A1A1A] text-xs text-[#6B6B6B] font-mono">
+            <span>Payload Example</span>
+          </div>
+          <div class="p-4 font-mono text-xs text-[#F7F7F5] overflow-x-auto whitespace-pre">{
+  "event_type": "subscription.cancelled",
+  "created_at": "2026-07-02T15:20:00Z",
+  "data": {
+    "subscription_id": "sub_48f61c20-7dbe-4...",
+    "customer_email": "customer@example.com",
+    "cancel_at_period_end": true
+  }
+}</div>
+        </div>
+      </div>
+
+      <!-- 3. succeeded -->
+      <div>
+        <h3 class="font-semibold text-lg text-[#0D0D0D] mb-2">3. <code>payment.succeeded</code></h3>
+        <p class="text-[#6B6B6B] text-sm mb-4 leading-relaxed">
+          Fired when a recurring subscription renewal payment succeeds via Nomba card charging.
+        </p>
+        <div class="rounded-xl overflow-hidden bg-[#1A1A1A] border border-[#1A1A1A] shadow-md max-w-2xl">
+          <div class="flex items-center justify-between px-4 py-2 bg-[#0D0D0D]/40 border-b border-solid border-[#1A1A1A] text-xs text-[#6B6B6B] font-mono">
+            <span>Payload Example</span>
+          </div>
+          <div class="p-4 font-mono text-xs text-[#F7F7F5] overflow-x-auto whitespace-pre">{
+  "event_type": "payment.succeeded",
+  "created_at": "2026-07-01T12:00:05Z",
+  "data": {
+    "payment_id": "pay_9a2f6b3e-7c1d-4c8a-8e2f-5d6c7b8a9c0d",
+    "subscription_id": "sub_48f61c20-7dbe-4...",
+    "amount": 2000.00,
+    "customer_email": "customer@example.com"
+  }
+}</div>
+        </div>
+      </div>
+
+      <!-- 4. failed -->
+      <div>
+        <h3 class="font-semibold text-lg text-[#0D0D0D] mb-2">4. <code>payment.failed</code></h3>
+        <p class="text-[#6B6B6B] text-sm mb-4 leading-relaxed">
+          Fired when a recurring renewal charge fails. This initiates the 11-day retry dunning cycle.
+        </p>
+        <div class="rounded-xl overflow-hidden bg-[#1A1A1A] border border-[#1A1A1A] shadow-md max-w-2xl">
+          <div class="flex items-center justify-between px-4 py-2 bg-[#0D0D0D]/40 border-b border-solid border-[#1A1A1A] text-xs text-[#6B6B6B] font-mono">
+            <span>Payload Example</span>
+          </div>
+          <div class="p-4 font-mono text-xs text-[#F7F7F5] overflow-x-auto whitespace-pre">{
+  "event_type": "payment.failed",
+  "created_at": "2026-07-01T12:00:00Z",
+  "data": {
+    "subscription_id": "sub_48f61c20-7dbe-4...",
+    "amount": 2000.00,
+    "customer_email": "customer@example.com",
+    "reason": "Insufficient funds"
+  }
+}</div>
+        </div>
+      </div>
+
+      <!-- 5. refunded -->
+      <div>
+        <h3 class="font-semibold text-lg text-[#0D0D0D] mb-2">5. <code>payment.refunded</code></h3>
+        <p class="text-[#6B6B6B] text-sm mb-4 leading-relaxed">
+          Fired when a previous successful payment is refunded to the customer's card.
+        </p>
+        <div class="rounded-xl overflow-hidden bg-[#1A1A1A] border border-[#1A1A1A] shadow-md max-w-2xl">
+          <div class="flex items-center justify-between px-4 py-2 bg-[#0D0D0D]/40 border-b border-solid border-[#1A1A1A] text-xs text-[#6B6B6B] font-mono">
+            <span>Payload Example</span>
+          </div>
+          <div class="p-4 font-mono text-xs text-[#F7F7F5] overflow-x-auto whitespace-pre">{
+  "event_type": "payment.refunded",
+  "created_at": "2026-07-02T10:15:30Z",
+  "data": {
+    "payment_id": "pay_9a2f6b3e-7c1d-4c8a-8e2f-5d6c7b8a9c0d",
+    "nomba_transaction_id": "txn_8c1b2a3d...",
+    "amount": 2000.00,
+    "customer_email": "customer@example.com"
+  }
+}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sandbox Simulation -->
+  <div id="sandbox" class="space-y-6 pt-6 border-t border-gray-200/60">
+    <h2 class="font-title text-2xl font-semibold tracking-tight text-[#0D0D0D]">Sandbox Webhook Simulation</h2>
+    <p class="text-[#6B6B6B] leading-relaxed">
+      To test your webhook endpoint's logic without needing actual bank card operations, you can trigger simulated Nomba webhook events using the following sandbox test endpoints.
+    </p>
+
+    <!-- Success simulation -->
+    <div class="space-y-3">
+      <h3 class="font-semibold text-base text-[#0D0D0D]">Simulate Payment Success</h3>
+      <div class="inline-flex items-center gap-2 font-mono text-sm">
+        <span class="bg-[#10b981]/10 text-[#34d399] px-2 py-0.5 rounded font-bold">POST</span>
+        <span class="text-[#0D0D0D] font-semibold">/webhooks/test-success</span>
+      </div>
+      <div class="rounded-xl overflow-hidden bg-[#1A1A1A] border border-[#1A1A1A] shadow-md max-w-2xl">
+        <div class="flex items-center justify-between px-4 py-2 bg-[#0D0D0D]/40 border-b border-solid border-[#1A1A1A] text-xs text-[#6B6B6B] font-mono">
+          <span>Request Body Example</span>
+        </div>
+        <div class="p-4 font-mono text-xs text-[#F7F7F5] overflow-x-auto whitespace-pre">{
+  "order_ref": "order_ref_abc123xyz",
+  "transaction_id": "test_txn_12345",
+  "token_key": "test_token_key_abcde"
+}</div>
+      </div>
+    </div>
+
+    <!-- Failed simulation -->
+    <div class="space-y-3 pt-4">
+      <h3 class="font-semibold text-base text-[#0D0D0D]">Simulate Payment Failure</h3>
+      <div class="inline-flex items-center gap-2 font-mono text-sm">
+        <span class="bg-[#10b981]/10 text-[#34d399] px-2 py-0.5 rounded font-bold">POST</span>
+        <span class="text-[#0D0D0D] font-semibold">/webhooks/test-failed</span>
+      </div>
+      <div class="rounded-xl overflow-hidden bg-[#1A1A1A] border border-[#1A1A1A] shadow-md max-w-2xl">
+        <div class="flex items-center justify-between px-4 py-2 bg-[#0D0D0D]/40 border-b border-solid border-[#1A1A1A] text-xs text-[#6B6B6B] font-mono">
+          <span>Request Body Example</span>
+        </div>
+        <div class="p-4 font-mono text-xs text-[#F7F7F5] overflow-x-auto whitespace-pre">{
+  "order_ref": "order_ref_abc123xyz"
 }</div>
       </div>
     </div>

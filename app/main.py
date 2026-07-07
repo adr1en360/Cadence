@@ -51,6 +51,7 @@ def get_public_openapi_spec():
     )
     public_app.include_router(router_plans.router)
     public_app.include_router(router_subscriptions.router)
+    public_app.include_router(router_payments.router)
     
     return get_openapi(
         title=public_app.title,

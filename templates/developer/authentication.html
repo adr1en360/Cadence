@@ -5,6 +5,7 @@
 {% block toc %}
   <a href="#headers" class="block text-[#6B6B6B] hover:text-[#F26419] transition-colors py-1">Bearer Auth Header</a>
   <a href="#scopes" class="block text-[#6B6B6B] hover:text-[#F26419] transition-colors py-1">Key Scopes & Security</a>
+  <a href="#code-examples" class="block text-[#6B6B6B] hover:text-[#F26419] transition-colors py-1">Code Examples</a>
 {% endblock %}
 
 {% block content %}
@@ -41,6 +42,61 @@
         <strong class="text-[#0D0D0D]">Scoping:</strong> Every resource created (plans, subscriber details, payment histories) is scoped to the owner of the key, ensuring isolation of sandbox environments.
       </li>
     </ul>
+  </div>
+
+  <div id="code-examples" class="space-y-6 pt-6 border-t border-gray-200/60">
+    <h2 class="font-title text-2xl font-semibold tracking-tight">Integration Code Examples</h2>
+    <p class="text-[#6B6B6B] leading-relaxed">
+      Use the following snippets to authenticate your connection and retrieve active billing plans:
+    </p>
+
+    <!-- Code Tabs -->
+    <div class="space-y-4">
+      <!-- Curl -->
+      <div class="rounded-xl overflow-hidden bg-[#1A1A1A] border border-[#1A1A1A] shadow-md">
+        <div class="flex items-center justify-between px-4 py-2 bg-[#0D0D0D]/40 border-b border-solid border-[#1A1A1A] text-xs text-[#6B6B6B] font-mono">
+          <span>cURL</span>
+        </div>
+        <div class="p-4 font-mono text-xs text-[#F7F7F5] overflow-x-auto whitespace-pre">curl -X GET "https://cadence.onrender.com/api/plans" \
+  -H "Authorization: Bearer YOUR_API_KEY"</div>
+      </div>
+
+      <!-- Python -->
+      <div class="rounded-xl overflow-hidden bg-[#1A1A1A] border border-[#1A1A1A] shadow-md">
+        <div class="flex items-center justify-between px-4 py-2 bg-[#0D0D0D]/40 border-b border-solid border-[#1A1A1A] text-xs text-[#6B6B6B] font-mono">
+          <span>Python (requests)</span>
+        </div>
+        <div class="p-4 font-mono text-xs text-[#F7F7F5] overflow-x-auto whitespace-pre">import requests
+
+url = "https://cadence.onrender.com/api/plans"
+headers = {
+    "Authorization": "Bearer YOUR_API_KEY",
+    "Content-Type": "application/json"
+}
+
+response = requests.get(url, headers=headers)
+print(response.json())</div>
+      </div>
+
+      <!-- Node.js -->
+      <div class="rounded-xl overflow-hidden bg-[#1A1A1A] border border-[#1A1A1A] shadow-md">
+        <div class="flex items-center justify-between px-4 py-2 bg-[#0D0D0D]/40 border-b border-solid border-[#1A1A1A] text-xs text-[#6B6B6B] font-mono">
+          <span>Node.js (fetch)</span>
+        </div>
+        <div class="p-4 font-mono text-xs text-[#F7F7F5] overflow-x-auto whitespace-pre">const apiKey = "YOUR_API_KEY";
+
+fetch("https://cadence.onrender.com/api/plans", {
+  method: "GET",
+  headers: {
+    "Authorization": `Bearer ${apiKey}`,
+    "Content-Type": "application/json"
+  }
+})
+.then(res => res.json())
+.then(data => console.log(data))
+.catch(err => console.error(err));</div>
+      </div>
+    </div>
   </div>
 </div>
 {% endblock %}

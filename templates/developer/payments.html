@@ -1,0 +1,127 @@
+{% extends "developer/base.html" %}
+
+{% block title %}Payments API - Cadence Docs{% endblock %}
+
+{% block toc %}
+  <a href="#overview" class="block text-[#6B6B6B] hover:text-[#F26419] transition-colors py-1">Overview</a>
+  <a href="#refund" class="block text-[#6B6B6B] hover:text-[#F26419] transition-colors py-1">Refund Payment</a>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+  <div id="overview" class="space-y-4">
+    <div class="text-xs font-semibold text-[#F26419] uppercase tracking-wider">API Reference</div>
+    <h1 class="font-title text-4xl font-bold tracking-tight text-[#0D0D0D]">Payments API</h1>
+    <p class="text-[#6B6B6B] leading-relaxed">
+      The Payments API allows you to inspect payment histories and trigger payment operations such as refunds for your subscription renewals.
+    </p>
+  </div>
+
+  <!-- Refund Payment Section -->
+  <div id="refund" class="space-y-6 pt-6 border-t border-gray-200/60">
+    <h2 class="font-title text-2xl font-semibold tracking-tight text-[#0D0D0D]">Refund Payment</h2>
+    <div class="inline-flex items-center gap-2 font-mono text-sm">
+      <span class="bg-[#10b981]/10 text-[#34d399] px-2 py-0.5 rounded font-bold">POST</span>
+      <span class="text-[#0D0D0D] font-semibold">/api/payments/{payment_id}/refund</span>
+    </div>
+    <p class="text-[#6B6B6B] leading-relaxed">
+      Triggers a refund request for a successful subscription payment. This communicates with Nomba's API under the hood to return the billed funds to the subscriber's bank card. Note that only successful (succeeded) payments can be refunded.
+    </p>
+
+    <!-- Path Parameters Table -->
+    <table class="min-w-full text-sm">
+      <thead>
+        <tr class="border-b border-borderColor text-left">
+          <th class="py-2 text-[#0D0D0D] font-semibold">Path Parameter</th>
+          <th class="py-2 text-[#0D0D0D] font-semibold">Type</th>
+          <th class="py-2 text-[#0D0D0D] font-semibold">Required</th>
+          <th class="py-2 text-[#0D0D0D] font-semibold">Description</th>
+        </tr>
+      </thead>
+      <tbody class="text-[#6B6B6B] divide-y divide-borderColor/40">
+        <tr>
+          <td class="py-2 font-mono text-primary">payment_id</td>
+          <td class="py-2">string</td>
+          <td class="py-2">Yes</td>
+          <td class="py-2">The unique identifier of the payment to be refunded.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Response JSON -->
+      <div class="rounded-xl overflow-hidden bg-[#1A1A1A] border border-[#1A1A1A] shadow-md">
+        <div class="flex items-center justify-between px-4 py-2 bg-[#0D0D0D]/40 border-b border-solid border-[#1A1A1A] text-xs text-[#6B6B6B] font-mono">
+          <span>Response JSON (200 OK)</span>
+        </div>
+        <div class="p-4 font-mono text-xs text-[#F7F7F5] overflow-x-auto whitespace-pre">{
+  "message": "Payment refunded successfully",
+  "status": "refunded"
+}</div>
+      </div>
+
+      <!-- Error Response JSON -->
+      <div class="rounded-xl overflow-hidden bg-[#1A1A1A] border border-[#1A1A1A] shadow-md">
+        <div class="flex items-center justify-between px-4 py-2 bg-[#0D0D0D]/40 border-b border-solid border-[#1A1A1A] text-xs text-[#6B6B6B] font-mono">
+          <span>Error JSON (400 Bad Request)</span>
+        </div>
+        <div class="p-4 font-mono text-xs text-[#F7F7F5] overflow-x-auto whitespace-pre">{
+  "detail": "Only succeeded payments can be refunded. Current status: refunded"
+}</div>
+      </div>
+    </div>
+
+    <!-- Code Examples -->
+    <div class="space-y-4 pt-4">
+      <h3 class="font-title text-lg font-semibold text-[#0D0D0D]">Integration Code Examples</h3>
+      
+      <!-- Curl -->
+      <div class="rounded-xl overflow-hidden bg-[#1A1A1A] border border-[#1A1A1A] shadow-md">
+        <div class="flex items-center justify-between px-4 py-2 bg-[#0D0D0D]/40 border-b border-solid border-[#1A1A1A] text-xs text-[#6B6B6B] font-mono">
+          <span>cURL</span>
+        </div>
+        <div class="p-4 font-mono text-xs text-[#F7F7F5] overflow-x-auto whitespace-pre">curl -X POST "https://cadence.onrender.com/api/payments/pay_9a2f6b3e-7c1d-4c8a-8e2f-5d6c7b8a9c0d/refund" \
+  -H "Authorization: Bearer YOUR_API_KEY"</div>
+      </div>
+
+      <!-- Python -->
+      <div class="rounded-xl overflow-hidden bg-[#1A1A1A] border border-[#1A1A1A] shadow-md">
+        <div class="flex items-center justify-between px-4 py-2 bg-[#0D0D0D]/40 border-b border-solid border-[#1A1A1A] text-xs text-[#6B6B6B] font-mono">
+          <span>Python (requests)</span>
+        </div>
+        <div class="p-4 font-mono text-xs text-[#F7F7F5] overflow-x-auto whitespace-pre">import requests
+
+payment_id = "pay_9a2f6b3e-7c1d-4c8a-8e2f-5d6c7b8a9c0d"
+url = f"https://cadence.onrender.com/api/payments/{payment_id}/refund"
+headers = {
+    "Authorization": "Bearer YOUR_API_KEY",
+    "Content-Type": "application/json"
+}
+
+response = requests.post(url, headers=headers)
+print(response.json())</div>
+      </div>
+
+      <!-- Node.js -->
+      <div class="rounded-xl overflow-hidden bg-[#1A1A1A] border border-[#1A1A1A] shadow-md">
+        <div class="flex items-center justify-between px-4 py-2 bg-[#0D0D0D]/40 border-b border-solid border-[#1A1A1A] text-xs text-[#6B6B6B] font-mono">
+          <span>Node.js (fetch)</span>
+        </div>
+        <div class="p-4 font-mono text-xs text-[#F7F7F5] overflow-x-auto whitespace-pre">const apiKey = "YOUR_API_KEY";
+const paymentId = "pay_9a2f6b3e-7c1d-4c8a-8e2f-5d6c7b8a9c0d";
+
+fetch(`https://cadence.onrender.com/api/payments/${paymentId}/refund`, {
+  method: "POST",
+  headers: {
+    "Authorization": `Bearer ${apiKey}`,
+    "Content-Type": "application/json"
+  }
+})
+.then(res => res.json())
+.then(data => console.log(data))
+.catch(err => console.error(err));</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

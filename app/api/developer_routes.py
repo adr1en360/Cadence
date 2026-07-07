@@ -54,6 +54,14 @@ def dev_errors(request: Request):
         context={"active_page": "errors"}
     )
 
+@router.get("/developer/payments")
+def dev_payments(request: Request):
+    return templates.TemplateResponse(
+        request=request,
+        name="developer/payments.html",
+        context={"active_page": "payments"}
+    )
+
 @router.get("/llms.txt", response_class=PlainTextResponse)
 def get_static_llms_txt():
     """Serve the plain text llms.txt guide for AI agents from static/llms.txt."""

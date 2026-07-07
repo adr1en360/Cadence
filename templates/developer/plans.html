@@ -6,6 +6,8 @@
   <a href="#overview" class="block text-[#6B6B6B] hover:text-[#F26419] transition-colors py-1">Overview</a>
   <a href="#create" class="block text-[#6B6B6B] hover:text-[#F26419] transition-colors py-1">Create a Plan</a>
   <a href="#list" class="block text-[#6B6B6B] hover:text-[#F26419] transition-colors py-1">List Plans</a>
+  <a href="#get" class="block text-[#6B6B6B] hover:text-[#F26419] transition-colors py-1">Retrieve a Plan</a>
+  <a href="#delete" class="block text-[#6B6B6B] hover:text-[#F26419] transition-colors py-1">Delete a Plan</a>
 {% endblock %}
 
 {% block content %}
@@ -64,13 +66,13 @@
 
   <!-- List Plans Section -->
   <div id="list" class="space-y-6 pt-6 border-t border-gray-200/60">
-    <h2 class="font-title text-2xl font-semibold tracking-tight">List Active Plans</h2>
+    <h2 class="font-title text-2xl font-semibold tracking-tight text-[#0D0D0D]">List Active Plans</h2>
     <div class="inline-flex items-center gap-2 font-mono text-sm">
-      <span class="bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded font-bold">GET</span>
+      <span class="bg-[#6366f1]/10 text-[#818cf8] px-2 py-0.5 rounded font-bold">GET</span>
       <span class="text-[#0D0D0D] font-semibold">/api/plans</span>
     </div>
     <p class="text-[#6B6B6B]">
-      Returns an array of all active plans configured on your account.
+      Returns an array of all active subscription plans configured under the authenticated merchant project.
     </p>
 
     <!-- Response JSON -->
@@ -89,6 +91,52 @@
     "is_active": true
   }
 ]</div>
+    </div>
+  </div>
+
+  <!-- Get Plan Section -->
+  <div id="get" class="space-y-6 pt-6 border-t border-gray-200/60">
+    <h2 class="font-title text-2xl font-semibold tracking-tight text-[#0D0D0D]">Retrieve a Plan</h2>
+    <div class="inline-flex items-center gap-2 font-mono text-sm">
+      <span class="bg-[#6366f1]/10 text-[#818cf8] px-2 py-0.5 rounded font-bold">GET</span>
+      <span class="text-[#0D0D0D] font-semibold">/api/plans/{plan_id}</span>
+    </div>
+    <p class="text-[#6B6B6B]">
+      Lookup details of a single plan by its unique ID.
+    </p>
+
+    <div class="rounded-xl overflow-hidden bg-[#1A1A1A] border border-[#1A1A1A] shadow-md max-w-2xl">
+      <div class="flex items-center justify-between px-4 py-2 bg-[#0D0D0D]/40 border-b border-solid border-[#1A1A1A] text-xs text-[#6B6B6B] font-mono">
+        <span>Response JSON (200 OK)</span>
+      </div>
+      <div class="p-4 font-mono text-xs text-[#F7F7F5] overflow-x-auto whitespace-pre">{
+  "id": "e9c0b2cd-9e81-4d32-bc51-0a12e34f5678",
+  "name": "Standard Monthly",
+  "amount": 2000.00,
+  "currency": "NGN",
+  "interval_days": 30,
+  "trial_days": 0,
+  "is_active": true
+}</div>
+    </div>
+  </div>
+
+  <!-- Delete Plan Section -->
+  <div id="delete" class="space-y-6 pt-6 border-t border-gray-200/60">
+    <h2 class="font-title text-2xl font-semibold tracking-tight text-[#0D0D0D]">Delete a Plan</h2>
+    <div class="inline-flex items-center gap-2 font-mono text-sm">
+      <span class="bg-red-500/10 text-red-400 px-2 py-0.5 rounded font-bold">DELETE</span>
+      <span class="text-[#0D0D0D] font-semibold">/api/plans/{plan_id}</span>
+    </div>
+    <p class="text-[#6B6B6B]">
+      Soft-deletes (deactivates) a billing plan. Existing active subscriptions on this plan will continue renewal cycles normally, but no new subscriptions can be created on this plan.
+    </p>
+
+    <div class="rounded-xl overflow-hidden bg-[#1A1A1A] border border-[#1A1A1A] shadow-md max-w-2xl">
+      <div class="flex items-center justify-between px-4 py-2 bg-[#0D0D0D]/40 border-b border-solid border-[#1A1A1A] text-xs text-[#6B6B6B] font-mono">
+        <span>Response Code</span>
+      </div>
+      <div class="p-4 font-mono text-xs text-[#F7F7F5] overflow-x-auto whitespace-pre">204 No Content</div>
     </div>
   </div>
 </div>

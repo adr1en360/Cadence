@@ -5,6 +5,9 @@
 {% block toc %}
   <a href="#welcome" class="block text-[#6B6B6B] hover:text-[#F26419] transition-colors py-1">Welcome to Cadence</a>
   <a href="#quickstart" class="block text-[#6B6B6B] hover:text-[#F26419] transition-colors py-1">Quickstart Guide</a>
+  <a href="#lifecycle" class="block text-[#6B6B6B] hover:text-[#F26419] transition-colors py-1">Subscription Lifecycle</a>
+  <a href="#dunning" class="block text-[#6B6B6B] hover:text-[#F26419] transition-colors py-1">Dunning & Retries</a>
+  <a href="#preflight" class="block text-[#6B6B6B] hover:text-[#F26419] transition-colors py-1">Pre-flight Protection</a>
 {% endblock %}
 
 {% block content %}
@@ -65,6 +68,133 @@
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- Subscription Lifecycle States Section -->
+  <div id="lifecycle" class="space-y-6 pt-6 border-t border-gray-200/60">
+    <h2 class="font-title text-2xl font-semibold tracking-tight text-[#0D0D0D]">Subscription Lifecycle</h2>
+    <p class="text-[#6B6B6B] leading-relaxed">
+      A subscription transitions dynamically between six core lifecycle states depending on payment outcomes, trials, and active cancellations:
+    </p>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 my-6">
+      <div class="bg-[#0D0E12]/40 border border-borderColor rounded-xl p-4">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+          <code class="font-semibold text-[#F7F7F9]">trialing</code>
+        </div>
+        <p class="text-[#90909A] text-xs">Customer has signed up with a free trial period. No charges have been made. Access is active.</p>
+      </div>
+
+      <div class="bg-[#0D0E12]/40 border border-borderColor rounded-xl p-4">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <code class="font-semibold text-[#F7F7F9]">active</code>
+        </div>
+        <p class="text-[#90909A] text-xs">Payment is current and subscription is valid for the current billing cycle. Full access granted.</p>
+      </div>
+
+      <div class="bg-[#0D0E12]/40 border border-borderColor rounded-xl p-4">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+          <code class="font-semibold text-[#F7F7F9]">past_due</code>
+        </div>
+        <p class="text-[#90909A] text-xs">A renewal invoice payment failed. The engine enters dunning state and continues retrying. Grace access active.</p>
+      </div>
+
+      <div class="bg-[#0D0E12]/40 border border-borderColor rounded-xl p-4">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="w-2 h-2 rounded-full bg-red-500"></span>
+          <code class="font-semibold text-[#F7F7F9]">suspended</code>
+        </div>
+        <p class="text-[#90909A] text-xs">All dunning retry attempts have been exhausted (3 retries). User access is frozen until card update.</p>
+      </div>
+
+      <div class="bg-[#0D0E12]/40 border border-borderColor rounded-xl p-4">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="w-2 h-2 rounded-full bg-gray-500"></span>
+          <code class="font-semibold text-[#F7F7F9]">cancelled</code>
+        </div>
+        <p class="text-[#90909A] text-xs">The subscription was cancelled either immediately by the merchant or at period end by the subscriber. Terminal state.</p>
+      </div>
+
+      <div class="bg-[#0D0E12]/40 border border-borderColor rounded-xl p-4">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="w-2 h-2 rounded-full bg-[#16161C]"></span>
+          <code class="font-semibold text-[#F7F7F9]">expired</code>
+        </div>
+        <p class="text-[#90909A] text-xs">The underlying billing plan was permanently deactivated or ended. Terminal state.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dunning & Retries Section -->
+  <div id="dunning" class="space-y-6 pt-6 border-t border-gray-200/60">
+    <h2 class="font-title text-2xl font-semibold tracking-tight text-[#0D0D0D]">Dunning & Automatic Retries</h2>
+    <p class="text-[#6B6B6B] leading-relaxed">
+      When a renewal payment fails, the subscription is moved to the <code>past_due</code> state and the dunning scheduler automatically schedules retries over a **11-day grace period** before suspension:
+    </p>
+
+    <div class="overflow-x-auto">
+      <table class="min-w-full text-sm">
+        <thead>
+          <tr class="border-b border-borderColor text-left">
+            <th class="py-2 text-[#0D0D0D] font-semibold">Attempt</th>
+            <th class="py-2 text-[#0D0D0D] font-semibold">Interval</th>
+            <th class="py-2 text-[#0D0D0D] font-semibold">Failure Action</th>
+            <th class="py-2 text-[#0D0D0D] font-semibold">Success Action</th>
+          </tr>
+        </thead>
+        <tbody class="text-textMuted divide-y divide-borderColor/40">
+          <tr>
+            <td class="py-2 font-mono text-primary">Initial renewal</td>
+            <td class="py-2">Renewal Date</td>
+            <td class="py-2">Transition to <code>past_due</code>, retry 1 scheduled</td>
+            <td class="py-2">Stay <code>active</code>, advance period</td>
+          </tr>
+          <tr>
+            <td class="py-2 font-mono text-primary">Retry 1</td>
+            <td class="py-2">1 day later</td>
+            <td class="py-2">Stay <code>past_due</code>, retry 2 scheduled</td>
+            <td class="py-2">Transition to <code>active</code>, clear retries</td>
+          </tr>
+          <tr>
+            <td class="py-2 font-mono text-primary">Retry 2</td>
+            <td class="py-2">3 days after Retry 1</td>
+            <td class="py-2">Stay <code>past_due</code>, retry 3 scheduled</td>
+            <td class="py-2">Transition to <code>active</code>, clear retries</td>
+          </tr>
+          <tr>
+            <td class="py-2 font-mono text-primary">Retry 3</td>
+            <td class="py-2">7 days after Retry 2</td>
+            <td class="py-2">Transition to <code>suspended</code>, stop retries</td>
+            <td class="py-2">Transition to <code>active</code>, clear retries</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Pre-flight Verification Protection Section -->
+  <div id="preflight" class="space-y-6 pt-6 border-t border-gray-200/60">
+    <h2 class="font-title text-2xl font-semibold tracking-tight text-[#0D0D0D]">Pre-flight Dual-Write Protection</h2>
+    <p class="text-[#6B6B6B] leading-relaxed">
+      In developing regions, network connection failures or application crashes immediately after charging a user card but prior to database commit can lead to dangerous double-charging.
+    </p>
+    <p class="text-[#6B6B6B] leading-relaxed">
+      Cadence features **Pre-flight Verification Protection**. Before executing any automatic renewal card charge:
+    </p>
+    <ul class="list-disc list-inside text-[#6B6B6B] space-y-2 leading-relaxed">
+      <li>
+        The engine scans for any existing <code>pending</code> payments initiated in the current cycle.
+      </li>
+      <li>
+        If found, Cadence executes a **pre-flight requery call** to Nomba's <code>verify_transaction</code> API to verify the downstream status.
+      </li>
+      <li>
+        If Nomba confirms that the payment succeeded, Cadence automatically **bypasses the new charge**, consumes the token key, advances the subscription's billing period, and writes it to the database, ensuring zero double-charging.
+      </li>
+    </ul>
   </div>
 </div>
 {% endblock %}

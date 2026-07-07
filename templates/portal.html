@@ -315,6 +315,40 @@
                 opacity: 1;
             }
         }
+
+        /* Modal Style for Portal */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.45);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            animation: modalFade 0.2s ease-out;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            width: 100%;
+            max-width: 440px;
+            padding: 1.75rem;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04), 0 0 0 1px rgba(0,0,0,0.05);
+            animation: modalSlide 0.2s ease-out;
+        }
+
+        @keyframes modalFade {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes modalSlide {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
     </style>
 </head>
 <body>
@@ -473,10 +507,55 @@
     </div>
 </div>
 
+<!-- Custom Confirmation Modal -->
+<div id="confirm-modal" class="modal">
+    <div class="modal-content">
+        <h3 id="confirm-title" style="margin-bottom: 0.75rem; font-size: 1.15rem; font-weight: 700; color: var(--text-primary);">Confirm Action</h3>
+        <p id="confirm-message" style="margin-bottom: 1.5rem; font-size: 0.875rem; color: var(--text-secondary); line-height: 1.5;"></p>
+        <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+            <button type="button" id="confirm-cancel-btn" class="btn btn-outline" style="padding: 0.45rem 1rem; border-radius: 8px;">Cancel</button>
+            <button type="button" id="confirm-proceed-btn" class="btn btn-primary" style="padding: 0.45rem 1rem; border-radius: 8px;">Proceed</button>
+        </div>
+    </div>
+</div>
+
 <script>
     const subId = "{{ subscription.id }}";
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('token') || '';
+
+    let confirmResolver = null;
+    const showConfirm = (title, message, isDestructive = false) => {
+        return new Promise((resolve) => {
+            document.getElementById("confirm-title").innerText = title;
+            document.getElementById("confirm-message").innerText = message;
+            
+            const proceedBtn = document.getElementById("confirm-proceed-btn");
+            if (isDestructive) {
+                proceedBtn.className = "btn btn-primary";
+                proceedBtn.style.backgroundColor = "var(--danger-color)";
+                proceedBtn.style.color = "#ffffff";
+            } else {
+                proceedBtn.className = "btn btn-primary";
+                proceedBtn.style.backgroundColor = "";
+                proceedBtn.style.color = "";
+            }
+            
+            document.getElementById("confirm-modal").style.display = "flex";
+            confirmResolver = resolve;
+        });
+    };
+
+    const handleConfirmClose = (result) => {
+        document.getElementById("confirm-modal").style.display = "none";
+        if (confirmResolver) {
+            confirmResolver(result);
+            confirmResolver = null;
+        }
+    };
+
+    document.getElementById("confirm-cancel-btn").addEventListener("click", () => handleConfirmClose(false));
+    document.getElementById("confirm-proceed-btn").addEventListener("click", () => handleConfirmClose(true));
 
     // Custom Toast Notification Function
     function showToast(message, type = "info") {
@@ -513,6 +592,13 @@
 
     // Update Payment Method (card tokenization)
     document.getElementById("update-card-btn")?.addEventListener("click", async () => {
+        const confirmed = await showConfirm(
+            "Update Card Details",
+            "You are about to be redirected to a secure Nomba checkout page to re-tokenize/update your payment card. A tiny pre-authorization charge may apply and will be refunded immediately.",
+            false
+        );
+        if (!confirmed) return;
+
         try {
             const resp = await fetch(`/api/portal/${subId}/update-card?token=${token}`, {
                 method: "POST"
@@ -531,6 +617,13 @@
  
     // Cancel Subscription at period end
     document.getElementById("cancel-sub-btn")?.addEventListener("click", async () => {
+        const confirmed = await showConfirm(
+            "Cancel Subscription",
+            "Are you sure you want to cancel your subscription? You will continue to have access until the end of your current billing period, after which your subscription will expire.",
+            true
+        );
+        if (!confirmed) return;
+
         try {
             const resp = await fetch(`/api/portal/${subId}/cancel?token=${token}`, {
                 method: "POST"
@@ -550,6 +643,13 @@
 
     // Resume Subscription
     document.getElementById("resume-sub-btn")?.addEventListener("click", async () => {
+        const confirmed = await showConfirm(
+            "Resume Subscription",
+            "Are you sure you want to resume your subscription? Your pending cancellation will be removed, and your subscription will renew automatically at the next billing date.",
+            false
+        );
+        if (!confirmed) return;
+
         try {
             const resp = await fetch(`/api/portal/${subId}/resume?token=${token}`, {
                 method: "POST"
@@ -569,12 +669,21 @@
 
     // Schedule Plan Switch
     document.getElementById("change-plan-btn")?.addEventListener("click", async () => {
-        const planId = document.getElementById("plan-select").value;
+        const planSelect = document.getElementById("plan-select");
+        const planId = planSelect.value;
         if (!planId) {
             showToast("Please select a plan to switch to.", "warning");
             return;
         }
         
+        const planName = planSelect.options[planSelect.selectedIndex].text;
+        const confirmed = await showConfirm(
+            "Switch Plan",
+            `Are you sure you want to switch to the "${planName}" plan? This change will take effect starting from your next renewal date.`,
+            false
+        );
+        if (!confirmed) return;
+
         try {
             const resp = await fetch(`/api/portal/${subId}/change-plan?token=${token}&plan_id=${planId}`, {
                 method: "POST"
@@ -594,6 +703,13 @@
 
     // Cancel Plan Change
     document.getElementById("cancel-plan-change-btn")?.addEventListener("click", async () => {
+        const confirmed = await showConfirm(
+            "Cancel Plan Change",
+            "Are you sure you want to cancel your scheduled plan switch? You will remain on your current subscription plan.",
+            false
+        );
+        if (!confirmed) return;
+
         try {
             const resp = await fetch(`/api/portal/${subId}/change-plan?token=${token}`, {
                 method: "POST"

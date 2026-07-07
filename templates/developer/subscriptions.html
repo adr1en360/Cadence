@@ -5,8 +5,10 @@
 {% block toc %}
   <a href="#overview" class="block text-[#6B6B6B] hover:text-[#F26419] transition-colors py-1">Overview</a>
   <a href="#create" class="block text-[#6B6B6B] hover:text-[#F26419] transition-colors py-1">Enroll Subscriber</a>
+  <a href="#list" class="block text-[#6B6B6B] hover:text-[#F26419] transition-colors py-1">List Subscriptions</a>
   <a href="#get" class="block text-[#6B6B6B] hover:text-[#F26419] transition-colors py-1">Get Details</a>
   <a href="#cancel" class="block text-[#6B6B6B] hover:text-[#F26419] transition-colors py-1">Cancel Subscription</a>
+  <a href="#portal-link" class="block text-[#6B6B6B] hover:text-[#F26419] transition-colors py-1">Customer Portal Link</a>
 {% endblock %}
 
 {% block content %}
@@ -63,11 +65,61 @@
     </div>
   </div>
 
+  <!-- List Subscriptions Section -->
+  <div id="list" class="space-y-6 pt-6 border-t border-gray-200/60">
+    <h2 class="font-title text-2xl font-semibold tracking-tight text-[#0D0D0D]">List Subscriptions</h2>
+    <div class="inline-flex items-center gap-2 font-mono text-sm">
+      <span class="bg-[#6366f1]/10 text-[#818cf8] px-2 py-0.5 rounded font-bold">GET</span>
+      <span class="text-[#0D0D0D] font-semibold">/api/subscriptions</span>
+    </div>
+    <p class="text-[#6B6B6B] leading-relaxed">
+      Returns a list of all subscriber enrollments for your project. You can filter the results by subscription status by passing the optional <code>status_filter</code> query parameter.
+    </p>
+
+    <!-- Params table -->
+    <table class="min-w-full text-sm">
+      <thead>
+        <tr class="border-b border-borderColor text-left">
+          <th class="py-2 text-[#0D0D0D] font-semibold">Query Parameter</th>
+          <th class="py-2 text-[#0D0D0D] font-semibold">Type</th>
+          <th class="py-2 text-[#0D0D0D] font-semibold">Required</th>
+          <th class="py-2 text-[#0D0D0D] font-semibold">Description</th>
+        </tr>
+      </thead>
+      <tbody class="text-[#6B6B6B] divide-y divide-borderColor/40">
+        <tr>
+          <td class="py-2 font-mono text-primary">status_filter</td>
+          <td class="py-2">string</td>
+          <td class="py-2">No</td>
+          <td class="py-2">Filter subscriptions by state: <code>trialing</code>, <code>active</code>, <code>past_due</code>, <code>suspended</code>, <code>cancelled</code>, <code>expired</code>.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Response JSON -->
+    <div class="rounded-xl overflow-hidden bg-[#1A1A1A] border border-[#1A1A1A] shadow-md max-w-2xl">
+      <div class="flex items-center justify-between px-4 py-2 bg-[#0D0D0D]/40 border-b border-solid border-[#1A1A1A] text-xs text-[#6B6B6B] font-mono">
+        <span>Response JSON (200 OK)</span>
+      </div>
+      <div class="p-4 font-mono text-xs text-[#F7F7F5] overflow-x-auto whitespace-pre">[
+  {
+    "id": "sub_48f61c20-7dbe-4...",
+    "plan_id": "e9c0b2cd-9e81-4...",
+    "customer_email": "customer@example.com",
+    "customer_name": "Emeka Eze",
+    "status": "active",
+    "current_period_start": "2026-07-01T12:00:00Z",
+    "current_period_end": "2026-07-31T12:00:00Z"
+  }
+]</div>
+    </div>
+  </div>
+
   <!-- Get Subscription Details -->
   <div id="get" class="space-y-6 pt-6 border-t border-gray-200/60">
-    <h2 class="font-title text-2xl font-semibold tracking-tight">Get Subscription Details</h2>
+    <h2 class="font-title text-2xl font-semibold tracking-tight text-[#0D0D0D]">Get Subscription Details</h2>
     <div class="inline-flex items-center gap-2 font-mono text-sm">
-      <span class="bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded font-bold">GET</span>
+      <span class="bg-[#6366f1]/10 text-[#818cf8] px-2 py-0.5 rounded font-bold">GET</span>
       <span class="text-[#0D0D0D] font-semibold">/api/subscriptions/{subscription_id}</span>
     </div>
     <p class="text-[#6B6B6B]">
@@ -98,13 +150,13 @@
 
   <!-- Cancel Subscription -->
   <div id="cancel" class="space-y-6 pt-6 border-t border-gray-200/60">
-    <h2 class="font-title text-2xl font-semibold tracking-tight">Cancel Subscription</h2>
+    <h2 class="font-title text-2xl font-semibold tracking-tight text-[#0D0D0D]">Cancel Subscription</h2>
     <div class="inline-flex items-center gap-2 font-mono text-sm">
-      <span class="bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded font-bold">POST</span>
+      <span class="bg-[#10b981]/10 text-[#34d399] px-2 py-0.5 rounded font-bold">POST</span>
       <span class="text-[#0D0D0D] font-semibold">/api/subscriptions/{subscription_id}/cancel</span>
     </div>
     <p class="text-[#6B6B6B]">
-      Cancels a subscription. By default, cancellation is immediate. You can optionally schedule the cancellation for the end of the current billing cycle.
+      Cancels a subscription. By default, cancellation is immediate. You can optionally schedule the cancellation for the end of the current billing cycle by sending the request body with <code>cancel_at_period_end: true</code>.
     </p>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -129,6 +181,29 @@
   "cancel_at_period_end": true
 }</div>
       </div>
+    </div>
+  </div>
+
+  <!-- Customer Portal Link Section -->
+  <div id="portal-link" class="space-y-6 pt-6 border-t border-gray-200/60">
+    <h2 class="font-title text-2xl font-semibold tracking-tight text-[#0D0D0D]">Generate Customer Portal Magic Link</h2>
+    <div class="inline-flex items-center gap-2 font-mono text-sm">
+      <span class="bg-[#10b981]/10 text-[#34d399] px-2 py-0.5 rounded font-bold">POST</span>
+      <span class="text-[#0D0D0D] font-semibold">/api/subscriptions/{subscription_id}/portal-link</span>
+    </div>
+    <p class="text-[#6B6B6B]">
+      Generates a secure, temporary, and tokenized URL that you can provide to your subscriber. Using this URL, the subscriber is authenticated without entering passwords and can directly update their card details, schedule plan swaps (upgrade/downgrade), or cancel their subscription.
+    </p>
+
+    <!-- Response JSON -->
+    <div class="rounded-xl overflow-hidden bg-[#1A1A1A] border border-[#1A1A1A] shadow-md max-w-2xl">
+      <div class="flex items-center justify-between px-4 py-2 bg-[#0D0D0D]/40 border-b border-solid border-[#1A1A1A] text-xs text-[#6B6B6B] font-mono">
+        <span>Response JSON (200 OK)</span>
+      </div>
+      <div class="p-4 font-mono text-xs text-[#F7F7F5] overflow-x-auto whitespace-pre">{
+  "portal_url": "https://cadence.onrender.com/portal/sub_48f61c20?token=k1Z5fO92...",
+  "expires_at": "2026-07-06T22:19:40.000Z"
+}</div>
     </div>
   </div>
 </div>
