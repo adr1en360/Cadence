@@ -526,6 +526,7 @@
                         <thead>
                             <tr>
                                 <th>Plan Name</th>
+                                <th>Plan ID</th>
                                 <th>Amount</th>
                                 <th>Billing Interval</th>
                                 <th class="hide-mobile">API Key Scope</th>
@@ -1135,12 +1136,13 @@
             plansBody.innerHTML = plans.length ? plans.map(p => `
                 <tr>
                     <td><strong style="color: white;">${p.name}</strong></td>
+                    <td><code style="color: var(--primary); background: rgba(255, 107, 0, 0.05); padding: 0.2rem 0.45rem; border-radius: 6px; border: 1px solid rgba(255, 107, 0, 0.1); font-size: 0.75rem;">${p.id}</code></td>
                     <td style="font-weight: 500; color: var(--primary);">₦${p.amount.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
                     <td>${p.interval_days} Days</td>
                     <td class="hide-mobile" style="color: var(--text-secondary); font-size: 0.75rem;">${p.api_key_label}</td>
                     <td><button class="btn btn-secondary" onclick="deletePlan('${p.id}')" style="padding: 0.3rem 0.7rem; font-size: 0.7rem; color: var(--danger); border-color: rgba(239, 68, 68, 0.15);">Archive</button></td>
                 </tr>
-            `).join('') : `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary); padding: 1.5rem 0;">No plans active</td></tr>`;
+            `).join('') : `<tr><td colspan="6" style="text-align: center; color: var(--text-secondary); padding: 1.5rem 0;">No plans active</td></tr>`;
 
             // Load Keys Table
             const keysBody = document.getElementById("keys-table-body");
