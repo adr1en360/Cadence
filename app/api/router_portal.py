@@ -51,6 +51,8 @@ def portal_page(sub_id: str, request: Request, token: str = None, db: Session = 
         "plan_interval": int(sub.plan.interval_days),
         "status": sub.status,
         "token_key": sub.token_key,
+        "card_brand": sub.card_brand,
+        "card_last4": sub.card_last4,
         "created_at": sub.created_at.strftime('%Y-%m-%d'),
         "period_end": sub.current_period_end.strftime('%Y-%m-%d %H:%M'),
         "cancel_at_period_end": sub.cancel_at_period_end,

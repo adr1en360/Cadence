@@ -457,7 +457,11 @@
                 <div class="payment-info">
                     <span class="data-value">
                         {% if subscription.token_key %}
-                            Stored Card ••••
+                            {% if subscription.card_brand and subscription.card_last4 %}
+                                {{ subscription.card_brand }} •••• {{ subscription.card_last4 }}
+                            {% else %}
+                                Stored Card ••••
+                            {% endif %}
                         {% else %}
                             No Card Stored
                         {% endif %}

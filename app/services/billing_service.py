@@ -130,7 +130,14 @@ class BillingService:
         return subscription, checkout_link, order_ref
 
     @staticmethod
-    def process_payment_success(db: Session, nomba_order_ref: str, transaction_id: str, token_key: str = None) -> Subscription:
+    def process_payment_success(
+        db: Session,
+        nomba_order_ref: str,
+        transaction_id: str,
+        token_key: str = None,
+        card_brand: str = None,
+        card_last4: str = None
+    ) -> Subscription:
         """Handle successful checkout or tokenized card payment outcome."""
         payment = db.query(Payment).filter(Payment.nomba_order_ref == nomba_order_ref).first()
         if not payment:
@@ -145,9 +152,13 @@ class BillingService:
         
         subscription = payment.subscription
         
-        # Update token key if provided
+        # Update token key and card details if provided
         if token_key:
             subscription.token_key = token_key
+        if card_brand:
+            subscription.card_brand = card_brand
+        if card_last4:
+            subscription.card_last4 = card_last4
             
         # Update period window
         now = datetime.utcnow()

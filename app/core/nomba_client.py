@@ -182,6 +182,18 @@ class NombaClient:
             resp.raise_for_status()
             return resp.json()
 
+    async def get_tokenized_cards(self, db: Session, project, customer_email: str) -> dict:
+        """Fetch tokenized card details for a customer email."""
+        path = "/v1/checkout/tokenized-card-data"
+        url = f"{self.base_url}{path}"
+        params = {"customerEmail": customer_email}
+        
+        headers = await self._get_auth_headers_for_project(db, project)
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(url, params=params, headers=headers)
+            resp.raise_for_status()
+            return resp.json()
+
     async def get_wallet_balance(self, db: Session, project, sub_account_id: str = None) -> dict:
         """Fetch balance from Nomba for parent account or sub-account."""
         if sub_account_id:

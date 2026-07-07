@@ -15,8 +15,11 @@ class Subscription(Base):
     customer_name = Column(String, nullable=True)
     status = Column(String, default="active", nullable=False)  # trialing, active, past_due, suspended, cancelled, expired
     token_key = Column(String, nullable=True)  # tokenized card key from Nomba
+    card_brand = Column(String, nullable=True)
+    card_last4 = Column(String, nullable=True)
     portal_token = Column(String, nullable=True)
     portal_token_expires_at = Column(DateTime, nullable=True)
+
     current_period_start = Column(DateTime, default=datetime.utcnow, nullable=False)
     current_period_end = Column(DateTime, nullable=False)
     cancel_at_period_end = Column(Boolean, default=False, nullable=False)

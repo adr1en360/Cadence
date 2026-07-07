@@ -71,11 +71,35 @@ async def handle_nomba_webhook(request: Request, db: Session = Depends(get_db)):
     # are mapped to Cadence's internal dot-notation events (e.g. `payment.succeeded`, `payment.failed`)
     # inside the BillingService processing methods.
     if event_type == "payment_success" and order_ref:
+        from app.models.payment import Payment
+        from app.core.nomba_client import nomba_client
+        
+        card_brand = None
+        card_last4 = None
+        if token_key:
+            try:
+                payment = db.query(Payment).filter(Payment.nomba_order_ref == order_ref).first()
+                if payment and payment.subscription:
+                    sub = payment.subscription
+                    cards_data = await nomba_client.get_tokenized_cards(db, project, sub.customer_email)
+                    card_list = cards_data.get("data", {}).get("tokenizedCardDataList", [])
+                    for card in card_list:
+                        if card.get("tokenKey") == token_key:
+                            card_brand = card.get("cardType")
+                            pan = card.get("cardPan", "")
+                            if pan and len(pan) >= 4:
+                                card_last4 = pan[-4:]
+                            break
+            except Exception as e:
+                print(f"[WEBHOOK] Failed to resolve card details from Nomba: {e}")
+
         BillingService.process_payment_success(
             db=db,
             nomba_order_ref=order_ref,
             transaction_id=transaction_id,
-            token_key=token_key
+            token_key=token_key,
+            card_brand=card_brand,
+            card_last4=card_last4
         )
         print(f"[WEBHOOK] Successfully processed payment_success for ref: {order_ref}")
         
@@ -98,12 +122,15 @@ def trigger_test_success_webhook(payload: dict, db: Session = Depends(get_db)):
     if not order_ref:
         raise HTTPException(status_code=400, detail="order_ref is required")
         
+        
     try:
         BillingService.process_payment_success(
             db=db,
             nomba_order_ref=order_ref,
             transaction_id=transaction_id,
-            token_key=token_key
+            token_key=token_key,
+            card_brand="Mastercard",
+            card_last4="2808"
         )
         return {"status": "success", "message": "Simulation success webhook triggered successfully"}
     except ValueError as e:
